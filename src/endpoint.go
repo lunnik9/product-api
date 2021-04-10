@@ -26,3 +26,22 @@ func makeLoginEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type getRefreshTokenRequest struct {
+	Token string `json:"token"`
+}
+
+type getRefreshTokenResponse struct {
+	Token string `json:"token"`
+}
+
+func makeGetRefreshTokenEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getRefreshTokenRequest)
+		resp, err := s.GetRefreshToken(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

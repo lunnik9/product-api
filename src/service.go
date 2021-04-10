@@ -11,6 +11,7 @@ type service struct {
 
 type Service interface {
 	Login(req *loginRequest) (*loginResponse, error)
+	GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error)
 }
 
 func NewService() Service {
@@ -31,4 +32,20 @@ func (s *service) Login(req *loginRequest) (*loginResponse, error) {
 	}
 
 	return &loginResponse{merch.MerchantId, merch.Token}, nil
+}
+
+func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error) {
+	merch, err := s.mr.GetMerchByToken(req.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	merch.Token = satori.NewV1().String()
+
+	err = s.mr.UpdateMerch(merch)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getRefreshTokenResponse{merch.Token}, nil
 }
