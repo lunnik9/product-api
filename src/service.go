@@ -14,8 +14,10 @@ type Service interface {
 	GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error)
 }
 
-func NewService() Service {
-	return &service{}
+func NewService(mr merch_repo.MerchRepo) Service {
+	return &service{
+		mr: mr,
+	}
 }
 
 func (s *service) Login(req *loginRequest) (*loginResponse, error) {
@@ -26,7 +28,7 @@ func (s *service) Login(req *loginRequest) (*loginResponse, error) {
 
 	merch.Token = satori.NewV1().String()
 
-	err = s.mr.UpdateMerch(merch)
+	err = s.mr.UpdateMerch(*merch)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +44,7 @@ func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshToken
 
 	merch.Token = satori.NewV1().String()
 
-	err = s.mr.UpdateMerch(merch)
+	err = s.mr.UpdateMerch(*merch)
 	if err != nil {
 		return nil, err
 	}

@@ -9,25 +9,58 @@ type MerchPostgres struct {
 	db *pg.DB
 }
 
-func (mr *MerchPostgres) GetMerchByNameAndPassword(mobile, password string) (domain.MerchantView, error) {
-	var merch domain.MerchantView
-	err := mr.db.Model(&merch).
+func NewMerchPostgres(db *pg.DB) MerchPostgres {
+	return MerchPostgres{db: db}
+}
+
+func (mr *MerchPostgres) GetMerchByNameAndPassword(mobile, password string) (*domain.Merchant, error) {
+	var view domain.MerchantView
+
+	err := mr.db.Model(&view).
 		Table("merchant").
 		Where("merchant.mobile = ? and merchant.password = ?", mobile, password).
 		Select()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return merch, nil
+	merch := domain.MerchViewToDomain(view)
+
+	return &merch, nil
 }
 
-func (mr *MerchPostgres) GetMerchByToken(token string) (domain.MerchantView, error) {
-	return domain.MerchantView{}, nil
+func (mr *MerchPostgres) GetMerchByToken(token string) (*domain.Merchant, error) {
+	var view domain.MerchantView
+
+	err := mr.db.Model(&view).
+		Table("merchant").
+		Where("merchant.token = ?", token).
+		Select()
+	if err != nil {
+		return nil, err
+	}
+
+	merch := domain.MerchViewToDomain(view)
+
+	return &merch, nil
 }
-func (mr *MerchPostgres) UpdateMerch(merch domain.MerchantView) error {
+
+func (mr *MerchPostgres) UpdateMerch(merch domain.Merchant) error {
+	view := domain.MerchDomainToView(merch)
+
+	_, err := mr.db.Model(&view).WherePK().Update()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
+
 func (mr *MerchPostgres) CheckRights(token string) (bool, error) {
-	return false, nil
+	_, err := mr.GetMerchByToken(token)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
