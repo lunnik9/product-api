@@ -3,7 +3,7 @@ package merch_repo
 import (
 	"time"
 
-	"github.com/product-api/domain"
+	"github.com/lunnik9/product-api/domain"
 )
 
 type merchMock struct {

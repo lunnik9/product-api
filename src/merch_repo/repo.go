@@ -1,6 +1,6 @@
 package merch_repo
 
-import "github.com/product-api/domain"
+import "github.com/lunnik9/product-api/domain"
 
 type MerchRepo interface {
 	GetMerchByNameAndPassword(mobile, password string) (*domain.Merchant, error)

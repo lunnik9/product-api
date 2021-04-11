@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/product-api/domain"
-	"github.com/product-api/src/db"
+	"github.com/lunnik9/product-api/domain"
+	"github.com/lunnik9/product-api/src/db"
 )
 
 func TestMerchPostgres_GetMerchByNameAndPassword(t *testing.T) {

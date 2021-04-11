@@ -2,7 +2,7 @@ package merch_repo
 
 import (
 	"github.com/go-pg/pg/v10"
-	"github.com/product-api/domain"
+	"github.com/lunnik9/product-api/domain"
 )
 
 type MerchPostgres struct {
