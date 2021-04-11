@@ -20,6 +20,7 @@ func main() {
 	}
 
 	port := os.Getenv("PORT")
+	fmt.Println("Listening on", port)
 
 	httpAddr := flag.String("http.addr", ":"+port, "HTTP listen address only port :"+port)
 

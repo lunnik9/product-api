@@ -53,11 +53,11 @@ func TestMerchPostgres_UpdateMerch(t *testing.T) {
 		MerchantId:   "123",
 		MerchantName: "karina",
 		Password:     "zxc",
-		Token:        "cvb",
+		Token:        "456",
 		UpdateTime:   time.Now(),
 		TokenTTL:     100,
 		LastCheck:    time.Now(),
-		Mobile:       "858585",
+		Mobile:       "7785220698",
 	}
 
 	err = mr.UpdateMerch(merch)
@@ -74,5 +74,5 @@ func TestMerchPostgres_CheckRights(t *testing.T) {
 
 	var mr = MerchPostgres{con}
 
-	fmt.Println(mr.CheckRights("сvb"))
+	fmt.Println(mr.CheckRights("456"))
 }

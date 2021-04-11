@@ -1,6 +1,8 @@
 package sources
 
 import (
+	"time"
+
 	"github.com/lunnik9/product-api/sources/merch_repo"
 	satori "github.com/satori/go.uuid"
 )
@@ -27,6 +29,7 @@ func (s *service) Login(req *loginRequest) (*loginResponse, error) {
 	}
 
 	merch.Token = satori.NewV1().String()
+	merch.LastCheck = time.Now().UTC()
 
 	err = s.mr.UpdateMerch(*merch)
 	if err != nil {
@@ -42,7 +45,13 @@ func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshToken
 		return nil, err
 	}
 
+	err = s.mr.CheckRightsWithMerch(*merch, req.Token)
+	if err != nil {
+		return nil, err
+	}
+
 	merch.Token = satori.NewV1().String()
+	merch.LastCheck = time.Now().UTC()
 
 	err = s.mr.UpdateMerch(*merch)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/lunnik9/product-api/product_errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -66,7 +67,6 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -75,13 +75,13 @@ type errorer interface {
 	error() error
 }
 
-// encode errors from business-logic
+// encode product_errors from business-logic
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-	w.WriteHeader(400)
+	respErr := err.(product_errors.ProductError)
+	w.WriteHeader(respErr.StatusCode)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	encodeErr := json.NewEncoder(w).Encode(err)
+	encodeErr := json.NewEncoder(w).Encode(respErr)
 	if encodeErr != nil {
 		Logger.Error(err)
 	}

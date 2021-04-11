@@ -1,8 +1,12 @@
 package merch_repo
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/go-pg/pg/v10"
 	"github.com/lunnik9/product-api/domain"
+	pe "github.com/lunnik9/product-api/product_errors"
 )
 
 type MerchPostgres struct {
@@ -21,7 +25,7 @@ func (mr *MerchPostgres) GetMerchByNameAndPassword(mobile, password string) (*do
 		Where("merchant.mobile = ? and merchant.password = ?", mobile, password).
 		Select()
 	if err != nil {
-		return nil, err
+		return nil, pe.New(409, err.Error())
 	}
 
 	merch := domain.MerchViewToDomain(view)
@@ -37,7 +41,7 @@ func (mr *MerchPostgres) GetMerchByToken(token string) (*domain.Merchant, error)
 		Where("merchant.token = ?", token).
 		Select()
 	if err != nil {
-		return nil, err
+		return nil, pe.New(409, err.Error())
 	}
 
 	merch := domain.MerchViewToDomain(view)
@@ -50,17 +54,26 @@ func (mr *MerchPostgres) UpdateMerch(merch domain.Merchant) error {
 
 	_, err := mr.db.Model(&view).WherePK().Update()
 	if err != nil {
-		return err
+		return pe.New(503, err.Error())
 	}
 
 	return nil
 }
 
-func (mr *MerchPostgres) CheckRights(token string) (bool, error) {
-	_, err := mr.GetMerchByToken(token)
+func (mr *MerchPostgres) CheckRights(token string) error {
+	merch, err := mr.GetMerchByToken(token)
 	if err != nil {
-		return false, err
+		return pe.New(401, err.Error())
 	}
 
-	return true, nil
+	return mr.CheckRightsWithMerch(*merch, token)
+}
+func (mr *MerchPostgres) CheckRightsWithMerch(merch domain.Merchant, token string) error {
+	timeout := merch.LastCheck.Add(time.Duration(merch.TokenTTL) * time.Second)
+
+	if timeout.Before(time.Now().UTC()) {
+		return pe.New(401, fmt.Sprintf("token %v timed out: %v", token, timeout))
+	}
+	return nil
+
 }
