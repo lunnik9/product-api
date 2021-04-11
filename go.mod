@@ -1,4 +1,4 @@
-module github.com/product-api
+module github.com/lunnik9/product-api
 
 go 1.13
 
