@@ -5,12 +5,17 @@ import (
 	"encoding/json"
 	"net/http"
 
+	kitlog "github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
-func MakeHandler(ss Service) http.Handler {
+var Logger *logrus.Logger
+
+func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	opts := []kithttp.ServerOption{
+		kithttp.ServerErrorLogger(logger),
 		kithttp.ServerErrorEncoder(encodeError),
 	}
 
@@ -61,6 +66,8 @@ func encodeResponse(ctx context.Context, w http.ResponseWriter, response interfa
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -70,7 +77,12 @@ type errorer interface {
 
 // encode errors from business-logic
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
-
+	w.WriteHeader(400)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(err)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	encodeErr := json.NewEncoder(w).Encode(err)
+	if encodeErr != nil {
+		Logger.Error(err)
+	}
 }

@@ -6,19 +6,24 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-kit/kit/log"
+	"github.com/lunnik9/product-api/config"
 	"github.com/lunnik9/product-api/sources"
 	"github.com/lunnik9/product-api/sources/db"
 	"github.com/lunnik9/product-api/sources/merch_repo"
 )
 
-var url = "postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95" //todo: change to normal config
-
 func main() {
+	err := config.GetConfigs()
+	if err != nil {
+		panic(err)
+	}
+
 	port := os.Getenv("PORT")
-	fmt.Println("Listening on", port)
+
 	httpAddr := flag.String("http.addr", ":"+port, "HTTP listen address only port :"+port)
 
-	pgConn, err := db.Connect(url)
+	pgConn, err := db.Connect(config.AllConfigs.Postgres.Url)
 	if err != nil {
 		panic(err)
 	}
@@ -32,9 +37,9 @@ func main() {
 	service := sources.NewService(&mr)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", sources.MakeHandler(service))
+	mux.Handle("/", sources.MakeHandler(service, log.NewLogfmtLogger(os.Stderr)))
 
-	http.Handle("/", mux)
+	http.Handle("/", accessControl(mux))
 
 	errs := make(chan error, 2)
 	go func() {
@@ -43,4 +48,16 @@ func main() {
 
 	fmt.Println("terminated", <-errs)
 
+}
+
+func accessControl(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+		if r.Method == "OPTIONS" {
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
 }
