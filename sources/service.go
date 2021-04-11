@@ -1,7 +1,7 @@
-package src
+package sources
 
 import (
-	"github.com/lunnik9/product-api/src/merch_repo"
+	"github.com/lunnik9/product-api/sources/merch_repo"
 	satori "github.com/satori/go.uuid"
 )
 

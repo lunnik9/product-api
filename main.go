@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/lunnik9/product-api/src"
-	"github.com/lunnik9/product-api/src/db"
-	"github.com/lunnik9/product-api/src/merch_repo"
+	"github.com/lunnik9/product-api/sources"
+	"github.com/lunnik9/product-api/sources/db"
+	"github.com/lunnik9/product-api/sources/merch_repo"
 )
 
 var url = "postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95" //todo: change to normal config
@@ -29,10 +29,10 @@ func main() {
 		//httpLogger = log.With(logger, "component", "http")
 	)
 
-	service := src.NewService(&mr)
+	service := sources.NewService(&mr)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", src.MakeHandler(service))
+	mux.Handle("/", sources.MakeHandler(service))
 
 	http.Handle("/", mux)
 
