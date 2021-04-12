@@ -19,7 +19,7 @@ func main() {
 		panic(err)
 	}
 
-	port := os.Getenv("PORT")
+	port := getPort()
 	fmt.Println("Listening on", port)
 
 	httpAddr := flag.String("http.addr", ":"+port, "HTTP listen address only port :"+port)
@@ -61,4 +61,14 @@ func accessControl(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(w, r)
 	})
+}
+
+func getPort() string {
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = config.AllConfigs.Http.Port
+	}
+
+	return port
 }

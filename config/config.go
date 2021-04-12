@@ -8,10 +8,15 @@ import (
 
 type Configs struct {
 	Postgres PostgresConfig `json:"postgres"`
+	Http     HttpConfig     `json:"http"`
 }
 
 type PostgresConfig struct {
 	Url string `json:"url"`
+}
+
+type HttpConfig struct {
+	Port string `json:"port"`
 }
 
 var AllConfigs *Configs
