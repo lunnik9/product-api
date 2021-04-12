@@ -77,3 +77,23 @@ func (mr *MerchPostgres) CheckRightsWithMerch(merch domain.Merchant, token strin
 	return nil
 
 }
+
+func (mr *MerchPostgres) GetStocksOfMerchant(merchId string) ([]domain.Stock, error) {
+	var (
+		stockViews []domain.StockView
+		stocks     []domain.Stock
+	)
+
+	query := mr.db.Model(&stockViews)
+
+	err := query.Select()
+	if err != nil {
+		return nil, pe.New(503, err.Error())
+	}
+
+	for _, v := range stockViews {
+		stocks = append(stocks, domain.StockViewToDomain(v))
+	}
+
+	return stocks, nil
+}

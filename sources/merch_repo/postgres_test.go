@@ -55,7 +55,7 @@ func TestMerchPostgres_UpdateMerch(t *testing.T) {
 		Password:     "zxc",
 		Token:        "456",
 		UpdateTime:   time.Now(),
-		TokenTTL:     100,
+		TokenTTL:     10000,
 		LastCheck:    time.Now(),
 		Mobile:       "7273765595",
 	}

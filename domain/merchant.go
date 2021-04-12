@@ -50,3 +50,33 @@ func MerchDomainToView(merchant Merchant) MerchantView {
 		Mobile:       merchant.Mobile,
 	}
 }
+
+type Stock struct {
+	StockId    string `json:"stock_id"`
+	MerchantId string `json:"merchant_id"`
+	StockName  string `json:"stock_name"`
+}
+
+type StockView struct {
+	tableName struct{} `pg:"stock"`
+
+	StockId    string `pg:"stock_id"`
+	MerchantId string `pg:"merchant_id"`
+	StockName  string `pg:"stock_name"`
+}
+
+func StockViewToDomain(view StockView) Stock {
+	return Stock{
+		StockId:    view.StockId,
+		MerchantId: view.MerchantId,
+		StockName:  view.StockName,
+	}
+}
+
+func StockDomainToView(stock Stock) StockView {
+	return StockView{
+		StockId:    stock.StockId,
+		MerchantId: stock.MerchantId,
+		StockName:  stock.StockName,
+	}
+}

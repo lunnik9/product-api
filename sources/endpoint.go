@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/kit/endpoint"
+	"github.com/lunnik9/product-api/domain"
 )
 
 type loginRequest struct {
@@ -40,6 +41,26 @@ func makeGetRefreshTokenEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(getRefreshTokenRequest)
 		resp, err := s.GetRefreshToken(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type listMerchantStocksRequest struct {
+	Authorization string `json:"authorization"`
+	MerchantId    string `json:"merchant_id"`
+}
+
+type listMerchantStocksResponse struct {
+	Stocks []domain.Stock `json:"stocks"`
+}
+
+func makeListMerchantStocksEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(listMerchantStocksRequest)
+		resp, err := s.ListMerchantStocks(&req)
 		if err != nil {
 			return nil, err
 		}

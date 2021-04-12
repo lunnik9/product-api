@@ -14,6 +14,7 @@ type service struct {
 type Service interface {
 	Login(req *loginRequest) (*loginResponse, error)
 	GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error)
+	ListMerchantStocks(req *listMerchantStocksRequest) (*listMerchantStocksResponse, error)
 }
 
 func NewService(mr merch_repo.MerchRepo) Service {
@@ -59,4 +60,18 @@ func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshToken
 	}
 
 	return &getRefreshTokenResponse{merch.Token}, nil
+}
+
+func (s *service) ListMerchantStocks(req *listMerchantStocksRequest) (*listMerchantStocksResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	stocks, err := s.mr.GetStocksOfMerchant(req.MerchantId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &listMerchantStocksResponse{stocks}, nil
 }

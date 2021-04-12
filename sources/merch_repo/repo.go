@@ -8,4 +8,5 @@ type MerchRepo interface {
 	UpdateMerch(merch domain.Merchant) error
 	CheckRights(token string) error
 	CheckRightsWithMerch(merch domain.Merchant, token string) error
+	GetStocksOfMerchant(merchId string) ([]domain.Stock, error)
 }
