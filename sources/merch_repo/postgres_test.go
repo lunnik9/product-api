@@ -17,7 +17,7 @@ func TestMerchPostgres_GetMerchByNameAndPassword(t *testing.T) {
 
 	var mr = MerchPostgres{con}
 
-	merch, err := mr.GetMerchByNameAndPassword("88005553535", "asd")
+	merch, err := mr.GetMerchByNameAndPassword("7273765595", "zxc")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,14 +50,14 @@ func TestMerchPostgres_UpdateMerch(t *testing.T) {
 	var mr = MerchPostgres{con}
 
 	merch := domain.Merchant{
-		MerchantId:   "123",
-		MerchantName: "karina",
+		MerchantId:   "45",
+		MerchantName: "artur",
 		Password:     "zxc",
 		Token:        "456",
 		UpdateTime:   time.Now(),
 		TokenTTL:     100,
 		LastCheck:    time.Now(),
-		Mobile:       "7785220698",
+		Mobile:       "7273765595",
 	}
 
 	err = mr.UpdateMerch(merch)

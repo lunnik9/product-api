@@ -36,7 +36,7 @@ func (s *service) Login(req *loginRequest) (*loginResponse, error) {
 		return nil, err
 	}
 
-	return &loginResponse{merch.MerchantId, merch.Token}, nil
+	return &loginResponse{merch.MerchantId, merch.MerchantName, merch.Token}, nil
 }
 
 func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error) {

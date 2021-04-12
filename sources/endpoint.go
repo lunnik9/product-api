@@ -12,8 +12,9 @@ type loginRequest struct {
 }
 
 type loginResponse struct {
-	MerchantId string `json:"merchant_id"`
-	Token      string `json:"token"`
+	MerchantId   string `json:"merchant_id"`
+	MerchantName string `json:"merchant_name"`
+	Token        string `json:"token"`
 }
 
 func makeLoginEndpoint(s Service) endpoint.Endpoint {
