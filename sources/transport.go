@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	pe "github.com/lunnik9/product-api/product_errors"
@@ -44,12 +45,45 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	getProductById := kithttp.NewServer(
+		makeGetProductByIdEndpoint(ss),
+		decodeGetProductByIdRequset,
+		encodeResponse,
+		opts...,
+	)
+
+	createProduct := kithttp.NewServer(
+		makeCreateProductEndpoint(ss),
+		decodeCreateProductRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	updateProduct := kithttp.NewServer(
+		makeUpdateProductEndpoint(ss),
+		decodeUpdateProductRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	deleteProduct := kithttp.NewServer(
+		makeDeleteProductEndpoint(ss),
+		decodeDeleteProductRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
 	r.Handle("/merch/refresh", getRefreshToken).Methods("POST")
 
 	r.Handle("/stocks/list/{merchant_id}", listMerchantStocks).Methods("GET")
+
+	r.Handle("/product/{product_id}", getProductById).Methods("GET")
+	r.Handle("/product/", createProduct).Methods("POST")
+	r.Handle("/product/", updateProduct).Methods("PUT")
+	r.Handle("/product/{product_id}", deleteProduct).Methods("DELETE")
 
 	return r
 }
@@ -86,6 +120,80 @@ func decodeListMerchantStocksRequest(_ context.Context, r *http.Request) (interf
 	}
 
 	return listMerchantStocksRequest{token, merchantId}, nil
+}
+
+func decodeGetProductByIdRequset(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	productIdString, ok := vars["product_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	productId, err := strconv.ParseInt(productIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return getProductByIdRequest{token, productId}, nil
+}
+
+func decodeCreateProductRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body createProductRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeUpdateProductRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body updateProductRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeDeleteProductRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	productIdString, ok := vars["product_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	productId, err := strconv.ParseInt(productIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteProductRequest{token, productId}, nil
 }
 
 func getAuthorizationToken(r *http.Request) (string, error) {

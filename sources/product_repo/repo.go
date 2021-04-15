@@ -3,9 +3,9 @@ package product_repo
 import "github.com/lunnik9/product-api/domain"
 
 type ProductRepo interface {
-	Get(merchantId, barcode, stockId string) (domain.ProductView, error)
-	Delete(merchantId, barcode, stockId string) error
-	Create(product domain.ProductView) error
-	Update(product domain.ProductView) error
-	Filter(limit, offset int, merchantId, stockId string)
+	Get(id int64) (*domain.Product, error)
+	Delete(id int64) error
+	Create(product domain.Product) (int64, error)
+	Update(product domain.Product) (*domain.Product, error)
+	Filter(limit, offset int, merchantId, stockId, name, barcode string) ([]domain.Product, error)
 }

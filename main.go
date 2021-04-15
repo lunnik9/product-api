@@ -11,6 +11,7 @@ import (
 	"github.com/lunnik9/product-api/sources"
 	"github.com/lunnik9/product-api/sources/db"
 	"github.com/lunnik9/product-api/sources/merch_repo"
+	"github.com/lunnik9/product-api/sources/product_repo"
 )
 
 func main() {
@@ -32,10 +33,11 @@ func main() {
 	var (
 		//logger     log.Logger
 		mr = merch_repo.NewMerchPostgres(pgConn)
+		pr = product_repo.NewProductPostgres(pgConn)
 		//httpLogger = log.With(logger, "component", "http")
 	)
 
-	service := sources.NewService(&mr)
+	service := sources.NewService(&mr, &pr)
 
 	mux := http.NewServeMux()
 	mux.Handle("/", sources.MakeHandler(service, log.NewLogfmtLogger(os.Stderr)))

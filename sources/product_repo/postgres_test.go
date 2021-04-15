@@ -1,78 +1,92 @@
-package merch_repo
+package product_repo
 
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/lunnik9/product-api/domain"
 	"github.com/lunnik9/product-api/sources/db"
 )
 
-func TestMerchPostgres_GetMerchByNameAndPassword(t *testing.T) {
+func TestProductPostgres_Get(t *testing.T) {
 	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var mr = MerchPostgres{con}
+	pr := ProductPostgres{con}
 
-	merch, err := mr.GetMerchByNameAndPassword("7273765595", "zxc")
+	product, err := pr.Get(1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("%+v", merch)
 
+	fmt.Printf("%+v", product)
 }
 
-func TestMerchPostgres_GetMerchByToken(t *testing.T) {
+func TestProductPostgres_Delete(t *testing.T) {
 	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var mr = MerchPostgres{con}
+	pr := ProductPostgres{con}
 
-	merch, err := mr.GetMerchByToken("asd")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	fmt.Printf("%+v", merch)
-}
-
-func TestMerchPostgres_UpdateMerch(t *testing.T) {
-	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var mr = MerchPostgres{con}
-
-	merch := domain.Merchant{
-		MerchantId:   "45",
-		MerchantName: "artur",
-		Password:     "zxc",
-		Token:        "456",
-		UpdateTime:   time.Now(),
-		TokenTTL:     10000,
-		LastCheck:    time.Now(),
-		Mobile:       "7273765595",
-	}
-
-	err = mr.UpdateMerch(merch)
+	err = pr.Delete(1)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestMerchPostgres_CheckRights(t *testing.T) {
+func TestProductPostgres_Create(t *testing.T) {
 	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var mr = MerchPostgres{con}
+	pr := ProductPostgres{con}
 
-	fmt.Println(mr.CheckRights("456"))
+	product := domain.Product{
+		Barcode:       "3228024150199",
+		Name:          "СЫР PRESIDENT RONDELE",
+		StockId:       "123",
+		Amount:        50,
+		Unit:          "piece",
+		PurchasePrice: 500,
+		SellingPrice:  1000,
+	}
+
+	id, err := pr.Create(product)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(id)
+}
+
+func TestProductPostgres_Update(t *testing.T) {
+	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pr := ProductPostgres{con}
+
+	product := domain.Product{
+		Id:            3,
+		Barcode:       "3228024150199",
+		Name:          "СЫР PRESIDENT RONDELE123",
+		StockId:       "123",
+		Amount:        50,
+		Unit:          "piece",
+		PurchasePrice: 500,
+		SellingPrice:  1000,
+	}
+
+	newProduct, err := pr.Update(product)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%+v", newProduct)
 }

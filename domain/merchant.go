@@ -60,7 +60,7 @@ type Stock struct {
 type StockView struct {
 	tableName struct{} `pg:"stock"`
 
-	StockId    string `pg:"stock_id"`
+	StockId    string `pg:"stock_id,pk"`
 	MerchantId string `pg:"merchant_id"`
 	StockName  string `pg:"stock_name"`
 }

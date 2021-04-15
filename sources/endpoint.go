@@ -67,3 +67,83 @@ func makeListMerchantStocksEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type getProductByIdRequest struct {
+	Authorization string
+	Id            int64
+}
+
+type getProductByIdResponse struct {
+	Product domain.Product `json:"product"`
+}
+
+func makeGetProductByIdEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getProductByIdRequest)
+		resp, err := s.GetProductById(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type createProductRequest struct {
+	Authorization string
+	Product       domain.Product `json:"product"`
+}
+
+type createProductResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeCreateProductEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(createProductRequest)
+		resp, err := s.CreateProduct(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type updateProductRequest struct {
+	Authorization string
+	Product       domain.Product `json:"product"`
+}
+
+type updateProductResponse struct {
+	Product domain.Product `json:"product"`
+}
+
+func makeUpdateProductEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(updateProductRequest)
+		resp, err := s.UpdateProduct(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type deleteProductRequest struct {
+	Authorization string
+	Id            int64
+}
+
+type deleteProductResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeDeleteProductEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(deleteProductRequest)
+		resp, err := s.DeleteProduct(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

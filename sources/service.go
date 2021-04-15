@@ -3,23 +3,32 @@ package sources
 import (
 	"time"
 
+	pe "github.com/lunnik9/product-api/product_errors"
 	"github.com/lunnik9/product-api/sources/merch_repo"
+	"github.com/lunnik9/product-api/sources/product_repo"
 	satori "github.com/satori/go.uuid"
 )
 
 type service struct {
 	mr merch_repo.MerchRepo
+	pr product_repo.ProductRepo
 }
 
 type Service interface {
 	Login(req *loginRequest) (*loginResponse, error)
 	GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error)
 	ListMerchantStocks(req *listMerchantStocksRequest) (*listMerchantStocksResponse, error)
+
+	GetProductById(req *getProductByIdRequest) (*getProductByIdResponse, error)
+	CreateProduct(req *createProductRequest) (*createProductResponse, error)
+	UpdateProduct(req *updateProductRequest) (*updateProductResponse, error)
+	DeleteProduct(req *deleteProductRequest) (*deleteProductResponse, error)
 }
 
-func NewService(mr merch_repo.MerchRepo) Service {
+func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo) Service {
 	return &service{
 		mr: mr,
+		pr: pr,
 	}
 }
 
@@ -74,4 +83,92 @@ func (s *service) ListMerchantStocks(req *listMerchantStocksRequest) (*listMerch
 	}
 
 	return &listMerchantStocksResponse{stocks}, nil
+}
+
+func (s *service) GetProductById(req *getProductByIdRequest) (*getProductByIdResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	product, err := s.pr.Get(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getProductByIdResponse{*product}, nil
+}
+
+func (s *service) CreateProduct(req *createProductRequest) (*createProductResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Product.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.Product.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	if req.Product.Name == "" {
+		return nil, pe.New(409, "name cannot be empty")
+	}
+
+	if req.Product.Barcode == "" {
+		return nil, pe.New(409, "barcode cannot be empty")
+	}
+
+	id, err := s.pr.Create(req.Product)
+	if err != nil {
+		return nil, err
+	}
+
+	return &createProductResponse{id}, nil
+}
+
+func (s *service) UpdateProduct(req *updateProductRequest) (*updateProductResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Product.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.Product.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	if req.Product.Name == "" {
+		return nil, pe.New(409, "name cannot be empty")
+	}
+
+	if req.Product.Barcode == "" {
+		return nil, pe.New(409, "barcode cannot be empty")
+	}
+
+	product, err := s.pr.Update(req.Product)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updateProductResponse{*product}, nil
+}
+
+func (s *service) DeleteProduct(req *deleteProductRequest) (*deleteProductResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.pr.Delete(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleteProductResponse{req.Id}, nil
 }
