@@ -7,5 +7,5 @@ type ProductRepo interface {
 	Delete(id int64) error
 	Create(product domain.Product) (int64, error)
 	Update(product domain.Product) (*domain.Product, error)
-	Filter(limit, offset int, merchantId, stockId, name, barcode string) ([]domain.Product, error)
+	Filter(limit, offset int, merchantId, stockId, name string) ([]domain.Product, error)
 }
