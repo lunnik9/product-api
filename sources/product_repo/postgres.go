@@ -64,6 +64,22 @@ func (pr *ProductPostgres) Update(product domain.Product) (*domain.Product, erro
 
 	return &product, nil
 }
-func (pr *ProductPostgres) Filter(limit, offset int, merchantId, stockId, name, barcode string) ([]domain.Product, error) {
-	return nil, nil
+func (pr *ProductPostgres) Filter(limit, offset int, merchantId, stockId, name string) ([]domain.Product, error) {
+	var (
+		views []domain.ProductView
+		resp  []domain.Product
+	)
+	_, err := pr.db.Query(&views,
+		`select * from product  where merchant_id = ? and stock_id = ? and (name like ? or barcode like ?) 
+order by updated_on desc limit ? offset ?`,
+		merchantId, stockId, name, name, limit, offset)
+	if err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	for _, view := range views {
+		resp = append(resp, domain.ProductViewToDomain(view))
+	}
+
+	return resp, nil
 }

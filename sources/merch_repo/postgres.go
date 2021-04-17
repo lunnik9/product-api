@@ -20,10 +20,11 @@ func NewMerchPostgres(db *pg.DB) MerchPostgres {
 func (mr *MerchPostgres) GetMerchByNameAndPassword(mobile, password string) (*domain.Merchant, error) {
 	var view domain.MerchantView
 
-	err := mr.db.Model(&view).
-		Table("merchant").
-		Where("merchant.mobile = ? and merchant.password = ?", mobile, password).
-		Select()
+	_, err := mr.db.Query(&view, "select * from merchant where mobile= ? and password = ?", mobile, password)
+	//err := mr.db.Model(&view).
+	//	Where("merchant.mobile = ?", mobile).
+	//	Where("and merchant.password = ?", password).
+	//	Select()
 	if err != nil {
 		return nil, pe.New(409, err.Error())
 	}
@@ -36,10 +37,10 @@ func (mr *MerchPostgres) GetMerchByNameAndPassword(mobile, password string) (*do
 func (mr *MerchPostgres) GetMerchByToken(token string) (*domain.Merchant, error) {
 	var view domain.MerchantView
 
-	err := mr.db.Model(&view).
-		Table("merchant").
-		Where("merchant.token = ?", token).
-		Select()
+	_, err := mr.db.Query(&view, "select * from merchant where token = ?", token)
+	//err := mr.db.Model(&view).
+	//	Where("merchant.token = ?", token).
+	//	Select()
 	if err != nil {
 		return nil, pe.New(409, err.Error())
 	}

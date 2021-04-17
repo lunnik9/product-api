@@ -33,7 +33,7 @@ func TestMerchPostgres_GetMerchByToken(t *testing.T) {
 
 	var mr = MerchPostgres{con}
 
-	merch, err := mr.GetMerchByToken("asd")
+	merch, err := mr.GetMerchByToken("123")
 	if err != nil {
 		t.Fatal(err)
 	}
