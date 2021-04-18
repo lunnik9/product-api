@@ -23,6 +23,7 @@ type Service interface {
 	CreateProduct(req *createProductRequest) (*createProductResponse, error)
 	UpdateProduct(req *updateProductRequest) (*updateProductResponse, error)
 	DeleteProduct(req *deleteProductRequest) (*deleteProductResponse, error)
+	FilterProducts(req *filterProductsRequest) (*filterProductsResponse, error)
 }
 
 func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo) Service {
@@ -171,4 +172,26 @@ func (s *service) DeleteProduct(req *deleteProductRequest) (*deleteProductRespon
 	}
 
 	return &deleteProductResponse{req.Id}, nil
+}
+
+func (s *service) FilterProducts(req *filterProductsRequest) (*filterProductsResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	products, err := s.pr.Filter(req.Limit, req.Offset, req.MerchantId, req.StockId, req.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filterProductsResponse{products}, nil
 }

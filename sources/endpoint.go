@@ -147,3 +147,27 @@ func makeDeleteProductEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type filterProductsRequest struct {
+	Authorization string
+	Name          string `json:"name"`
+	Limit         int    `json:"limit"`
+	Offset        int    `json:"offset"`
+	MerchantId    string `json:"merchant_id"`
+	StockId       string `json:"stock_id"`
+}
+
+type filterProductsResponse struct {
+	Products []domain.Product `json:"products"`
+}
+
+func makeFilterProductsEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(filterProductsRequest)
+		resp, err := s.FilterProducts(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

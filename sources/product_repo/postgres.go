@@ -1,6 +1,7 @@
 package product_repo
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-pg/pg/v10"
@@ -68,11 +69,18 @@ func (pr *ProductPostgres) Filter(limit, offset int, merchantId, stockId, name s
 	var (
 		views []domain.ProductView
 		resp  []domain.Product
+		query string
 	)
-	_, err := pr.db.Query(&views,
-		`select * from product  where merchant_id = ? and stock_id = ? and (name like ? or barcode like ?) 
-order by updated_on desc limit ? offset ?`,
-		merchantId, stockId, name, name, limit, offset)
+
+	query = "select * from product  where merchant_id = ? and stock_id = ?"
+	if name != "" {
+		name = "%" + name + "%"
+		query += fmt.Sprintf(" and (name like '%v' or barcode like '%v')", name, name)
+	}
+
+	query = query + " order by updated_on desc limit ? offset ?"
+
+	_, err := pr.db.Query(&views, query, merchantId, stockId, limit, offset)
 	if err != nil {
 		return nil, pe.New(409, err.Error())
 	}

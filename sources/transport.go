@@ -73,6 +73,13 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	filterProducts := kithttp.NewServer(
+		makeFilterProductsEndpoint(ss),
+		decodeFilterProductsRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -84,6 +91,7 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/product/", createProduct).Methods("POST")
 	r.Handle("/product/", updateProduct).Methods("PUT")
 	r.Handle("/product/{product_id}", deleteProduct).Methods("DELETE")
+	r.Handle("/product/filter", filterProducts).Methods("POST")
 
 	return r
 }
@@ -194,6 +202,22 @@ func decodeDeleteProductRequest(_ context.Context, r *http.Request) (interface{}
 	}
 
 	return deleteProductRequest{token, productId}, nil
+}
+
+func decodeFilterProductsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body filterProductsRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
 }
 
 func getAuthorizationToken(r *http.Request) (string, error) {
