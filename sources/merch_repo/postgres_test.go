@@ -50,14 +50,14 @@ func TestMerchPostgres_UpdateMerch(t *testing.T) {
 	var mr = MerchPostgres{con}
 
 	merch := domain.Merchant{
-		MerchantId:   "45",
-		MerchantName: "artur",
-		Password:     "zxc",
+		MerchantId:   "123",
+		MerchantName: "karina",
+		Password:     "qwe",
 		Token:        "456",
 		UpdateTime:   time.Now(),
 		TokenTTL:     10000,
 		LastCheck:    time.Now(),
-		Mobile:       "7273765595",
+		Mobile:       "7023335353",
 	}
 
 	err = mr.UpdateMerch(merch)

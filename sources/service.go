@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"fmt"
 	"time"
 
 	pe "github.com/lunnik9/product-api/product_errors"
@@ -120,6 +121,11 @@ func (s *service) CreateProduct(req *createProductRequest) (*createProductRespon
 
 	if req.Product.Barcode == "" {
 		return nil, pe.New(409, "barcode cannot be empty")
+	}
+
+	foundProduct, _ := s.pr.GetProductByBarcode(req.Product.MerchantId, req.Product.StockId, req.Product.Barcode)
+	if foundProduct != nil {
+		return nil, pe.New(409, fmt.Sprintf("product with barcode %v already exists", req.Product.Barcode))
 	}
 
 	id, err := s.pr.Create(req.Product)

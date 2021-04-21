@@ -91,3 +91,23 @@ func (pr *ProductPostgres) Filter(limit, offset int, merchantId, stockId, name s
 
 	return resp, nil
 }
+
+func (pr *ProductPostgres) GetProductByBarcode(merchantId, stockId, barcode string) (*domain.Product, error) {
+	var (
+		view    domain.ProductView
+		query   string
+		product domain.Product
+	)
+
+	query = "select * from product  where merchant_id = ? and stock_id = ? and barcode = ?"
+
+	_, err := pr.db.Query(&view, query, merchantId, stockId, barcode)
+	if err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	product = domain.ProductViewToDomain(view)
+
+	return &product, nil
+
+}

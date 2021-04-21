@@ -8,4 +8,5 @@ type ProductRepo interface {
 	Create(product domain.Product) (int64, error)
 	Update(product domain.Product) (*domain.Product, error)
 	Filter(limit, offset int, merchantId, stockId, name string) ([]domain.Product, error)
+	GetProductByBarcode(merchantId, stockId, barcode string) (*domain.Product, error)
 }
