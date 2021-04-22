@@ -171,3 +171,24 @@ func makeFilterProductsEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type getListOfCashBoxesRequest struct {
+	Authorization string
+	MerchantId    string `json:"merchant_id"`
+	StockId       string `json:"stock_id"`
+}
+
+type getListOfCashBoxesResponse struct {
+	CashBoxes []domain.CashBox `json:"cash_boxes"`
+}
+
+func makeGetListOfCashBoxesEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getListOfCashBoxesRequest)
+		resp, err := s.GetListOfCashBoxes(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

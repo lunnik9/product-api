@@ -9,4 +9,5 @@ type MerchRepo interface {
 	CheckRights(token string) error
 	CheckRightsWithMerch(merch domain.Merchant, token string) error
 	GetStocksOfMerchant(merchId string) ([]domain.Stock, error)
+	GetListOfCashBoxes(merchId, stockId string) ([]domain.CashBox, error)
 }

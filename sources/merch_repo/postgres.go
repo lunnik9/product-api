@@ -98,3 +98,23 @@ func (mr *MerchPostgres) GetStocksOfMerchant(merchId string) ([]domain.Stock, er
 
 	return stocks, nil
 }
+
+func (mr *MerchPostgres) GetListOfCashBoxes(merchId, stockId string) ([]domain.CashBox, error) {
+	var (
+		cashBoxViews []domain.CashBoxView
+		cashBoxes    []domain.CashBox
+	)
+
+	query := "select * from cash_box where merchant_id = ? and stock_id = ?"
+
+	_, err := mr.db.Query(&cashBoxViews, query, merchId, stockId)
+	if err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	for _, v := range cashBoxViews {
+		cashBoxes = append(cashBoxes, domain.CashBoxViewToDomain(v))
+	}
+
+	return cashBoxes, nil
+}

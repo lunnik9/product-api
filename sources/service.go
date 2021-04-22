@@ -19,6 +19,7 @@ type Service interface {
 	Login(req *loginRequest) (*loginResponse, error)
 	GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error)
 	ListMerchantStocks(req *listMerchantStocksRequest) (*listMerchantStocksResponse, error)
+	GetListOfCashBoxes(req *getListOfCashBoxesRequest) (*getListOfCashBoxesResponse, error)
 
 	GetProductById(req *getProductByIdRequest) (*getProductByIdResponse, error)
 	CreateProduct(req *createProductRequest) (*createProductResponse, error)
@@ -200,4 +201,26 @@ func (s *service) FilterProducts(req *filterProductsRequest) (*filterProductsRes
 	}
 
 	return &filterProductsResponse{products}, nil
+}
+
+func (s *service) GetListOfCashBoxes(req *getListOfCashBoxesRequest) (*getListOfCashBoxesResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	cashBoxes, err := s.mr.GetListOfCashBoxes(req.MerchantId, req.StockId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getListOfCashBoxesResponse{cashBoxes}, nil
 }

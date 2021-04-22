@@ -80,3 +80,28 @@ func StockDomainToView(stock Stock) StockView {
 		StockName:  stock.StockName,
 	}
 }
+
+type CashBox struct {
+	Name       string `json:"name"`
+	CashBoxId  string `json:"cash_box_id"`
+	MerchantId string `json:"merchant_id"`
+	StockId    string `json:"stock_id"`
+}
+
+type CashBoxView struct {
+	tableName struct{} `pg:"cash_box"`
+
+	Name       string `pg:"name"`
+	CashBoxId  string `pg:"cash_box_id"`
+	MerchantId string `pg:"merchant_id"`
+	StockId    string `pg:"stock_id"`
+}
+
+func CashBoxViewToDomain(view CashBoxView) CashBox {
+	return CashBox{
+		Name:       view.Name,
+		CashBoxId:  view.CashBoxId,
+		MerchantId: view.MerchantId,
+		StockId:    view.StockId,
+	}
+}

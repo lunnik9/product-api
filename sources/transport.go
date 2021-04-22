@@ -80,18 +80,27 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	getListOfCashBoxes := kithttp.NewServer(
+		makeGetListOfCashBoxesEndpoint(ss),
+		decodeHetListOfCashboxesRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
-	r.Handle("/merch/login", login).Methods("POST")
-	r.Handle("/merch/refresh", getRefreshToken).Methods("POST")
+	r.Handle("/merch/login/", login).Methods("POST")
+	r.Handle("/merch/refresh/", getRefreshToken).Methods("POST")
 
 	r.Handle("/stocks/list/{merchant_id}", listMerchantStocks).Methods("GET")
+
+	r.Handle("/cashbox/list/", getListOfCashBoxes).Methods("POST")
 
 	r.Handle("/product/{product_id}", getProductById).Methods("GET")
 	r.Handle("/product/", createProduct).Methods("POST")
 	r.Handle("/product/", updateProduct).Methods("PUT")
 	r.Handle("/product/{product_id}", deleteProduct).Methods("DELETE")
-	r.Handle("/product/filter", filterProducts).Methods("POST")
+	r.Handle("/product/filter/", filterProducts).Methods("POST")
 
 	return r
 }
@@ -206,6 +215,22 @@ func decodeDeleteProductRequest(_ context.Context, r *http.Request) (interface{}
 
 func decodeFilterProductsRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var body filterProductsRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeHetListOfCashboxesRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body getListOfCashBoxesRequest
 
 	token, err := getAuthorizationToken(r)
 	if err != nil {
