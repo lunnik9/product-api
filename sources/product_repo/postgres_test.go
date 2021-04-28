@@ -16,7 +16,7 @@ func TestProductPostgres_Get(t *testing.T) {
 
 	pr := ProductPostgres{con}
 
-	product, err := pr.Get(1)
+	product, err := pr.Get(6)
 	if err != nil {
 		t.Fatal(err)
 	}

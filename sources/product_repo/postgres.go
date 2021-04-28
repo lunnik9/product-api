@@ -20,7 +20,7 @@ func NewProductPostgres(db *pg.DB) ProductPostgres {
 func (pr *ProductPostgres) Get(id int64) (*domain.Product, error) {
 	var view = domain.ProductView{Id: id}
 
-	err := pr.db.Model(&view).WherePK().Select()
+	err := pr.db.Model(&view).WherePK().Relation("CategoryView").Select()
 	if err != nil {
 		return nil, pe.New(409, err.Error())
 	}

@@ -89,18 +89,18 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	r.Handle("/merch/login/", login).Methods("POST")
-	r.Handle("/merch/refresh/", getRefreshToken).Methods("POST")
+	r.Handle("/merch/login", login).Methods("POST")
+	r.Handle("/merch/refresh", getRefreshToken).Methods("POST")
 
 	r.Handle("/stocks/list/{merchant_id}", listMerchantStocks).Methods("GET")
 
-	r.Handle("/cashbox/list/", getListOfCashBoxes).Methods("POST")
+	r.Handle("/cashbox/list", getListOfCashBoxes).Methods("POST")
 
 	r.Handle("/product/{product_id}", getProductById).Methods("GET")
-	r.Handle("/product/", createProduct).Methods("POST")
-	r.Handle("/product/", updateProduct).Methods("PUT")
+	r.Handle("/product", createProduct).Methods("POST")
+	r.Handle("/product", updateProduct).Methods("PUT")
 	r.Handle("/product/{product_id}", deleteProduct).Methods("DELETE")
-	r.Handle("/product/filter/", filterProducts).Methods("POST")
+	r.Handle("/product/filter", filterProducts).Methods("POST")
 
 	return r
 }
