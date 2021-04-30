@@ -16,8 +16,8 @@ type ProductView struct {
 	SellingPrice  float64   `pg:"selling_price"`
 	CreatedOn     time.Time `pg:"created_on"`
 	UpdatedOn     time.Time `pg:"updated_on"`
-	CategoryID    int64
-	CategoryView  *CategoryView `pg:"rel:has-one"`
+	//CategoryID    int64
+	//CategoryView  *CategoryView `pg:"rel:has-one"`
 }
 
 type Product struct {
@@ -49,9 +49,9 @@ func ProductViewToDomain(view ProductView) Product {
 		CreatedOn:     view.CreatedOn,
 		UpdatedOn:     view.UpdatedOn,
 	}
-	if view.CategoryView != nil {
-		product.Category = view.CategoryView.Name
-	}
+	//if view.CategoryView != nil {
+	//	product.Category = view.CategoryView.Name
+	//}
 
 	return product
 }
