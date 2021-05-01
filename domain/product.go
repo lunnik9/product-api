@@ -16,7 +16,7 @@ type ProductView struct {
 	SellingPrice  float64   `pg:"selling_price"`
 	CreatedOn     time.Time `pg:"created_on"`
 	UpdatedOn     time.Time `pg:"updated_on"`
-	//CategoryID    int64
+	CategoryId    int64     `pg:"category_id"`
 	//CategoryView  *CategoryView `pg:"rel:has-one"`
 }
 
