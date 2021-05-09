@@ -87,6 +87,48 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	getCategoryById := kithttp.NewServer(
+		makeGetCategoryByIdEndpoint(ss),
+		decodeGetCategoryByIdRequset,
+		encodeResponse,
+		opts...,
+	)
+
+	createCategory := kithttp.NewServer(
+		makeCreateCategoryEndpoint(ss),
+		decodeCreateCategoryRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	updateCategory := kithttp.NewServer(
+		makeUpdateCategoryEndpoint(ss),
+		decodeUpdateCategoryRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	deleteCategory := kithttp.NewServer(
+		makeDeleteCategoryEndpoint(ss),
+		decodeDeleteCategoryRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	filterCategories := kithttp.NewServer(
+		makeFilterCategoriesEndpoint(ss),
+		decodeFilterCategoriesRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	mDeleteProducts := kithttp.NewServer(
+		makeMDeleteProductsEndpoint(ss),
+		decodeMDeleteProductsRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -101,6 +143,13 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/product", updateProduct).Methods("PUT")
 	r.Handle("/product/{product_id}", deleteProduct).Methods("DELETE")
 	r.Handle("/product/filter", filterProducts).Methods("POST")
+	r.Handle("/product/mdelete", mDeleteProducts).Methods("POST")
+
+	r.Handle("/category/{category_id}", getCategoryById).Methods("GET")
+	r.Handle("/category", createCategory).Methods("POST")
+	r.Handle("/category", updateCategory).Methods("PUT")
+	r.Handle("/category/{category_id}", deleteCategory).Methods("DELETE")
+	r.Handle("/category/filter", filterCategories).Methods("POST")
 
 	return r
 }
@@ -231,6 +280,112 @@ func decodeFilterProductsRequest(_ context.Context, r *http.Request) (interface{
 
 func decodeHetListOfCashboxesRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var body getListOfCashBoxesRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeGetCategoryByIdRequset(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	productIdString, ok := vars["category_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	categoryId, err := strconv.ParseInt(productIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return getCategoryByIdRequest{token, categoryId}, nil
+}
+
+func decodeCreateCategoryRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body createCategoryRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeUpdateCategoryRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body updateCategoryRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeDeleteCategoryRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	productIdString, ok := vars["category_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	categoryId, err := strconv.ParseInt(productIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return deleteCategoryRequest{token, categoryId}, nil
+}
+
+func decodeFilterCategoriesRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body filterCategoriesRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeMDeleteProductsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body mDeleteProductsRequest
 
 	token, err := getAuthorizationToken(r)
 	if err != nil {

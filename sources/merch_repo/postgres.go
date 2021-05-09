@@ -69,6 +69,7 @@ func (mr *MerchPostgres) CheckRights(token string) error {
 
 	return mr.CheckRightsWithMerch(*merch, token)
 }
+
 func (mr *MerchPostgres) CheckRightsWithMerch(merch domain.Merchant, token string) error {
 	timeout := merch.LastCheck.Add(time.Duration(merch.TokenTTL) * time.Second)
 

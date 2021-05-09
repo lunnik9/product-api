@@ -26,6 +26,13 @@ type Service interface {
 	UpdateProduct(req *updateProductRequest) (*updateProductResponse, error)
 	DeleteProduct(req *deleteProductRequest) (*deleteProductResponse, error)
 	FilterProducts(req *filterProductsRequest) (*filterProductsResponse, error)
+	MDleleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error)
+
+	GetCategoryById(req *getCategoryByIdRequest) (*getCategoryByIdResponse, error)
+	CreateCategory(req *createCategoryRequest) (*createCategoryResponse, error)
+	UpdateCategory(req *updateCategoryRequest) (*updateCategoryResponse, error)
+	DeleteCategory(req *deleteCategoryRequest) (*deleteCategoryResponse, error)
+	FilterCategories(req *filterCategoriesRequest) (*filterCategoriesResponse, error)
 }
 
 func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo) Service {
@@ -223,4 +230,119 @@ func (s *service) GetListOfCashBoxes(req *getListOfCashBoxesRequest) (*getListOf
 	}
 
 	return &getListOfCashBoxesResponse{cashBoxes}, nil
+}
+
+func (s *service) GetCategoryById(req *getCategoryByIdRequest) (*getCategoryByIdResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	category, err := s.pr.GetCategory(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getCategoryByIdResponse{*category}, nil
+}
+
+func (s *service) CreateCategory(req *createCategoryRequest) (*createCategoryResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Category.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.Category.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	if req.Category.Name == "" {
+		return nil, pe.New(409, "name cannot be empty")
+	}
+
+	id, err := s.pr.CreateCategory(req.Category)
+	if err != nil {
+		return nil, err
+	}
+
+	return &createCategoryResponse{id}, nil
+}
+
+func (s *service) UpdateCategory(req *updateCategoryRequest) (*updateCategoryResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Category.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.Category.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	if req.Category.Name == "" {
+		return nil, pe.New(409, "name cannot be empty")
+	}
+
+	category, err := s.pr.UpdateCategory(req.Category)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updateCategoryResponse{*category}, nil
+}
+
+func (s *service) DeleteCategory(req *deleteCategoryRequest) (*deleteCategoryResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.pr.DeleteCategory(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleteCategoryResponse{req.Id}, nil
+}
+func (s *service) FilterCategories(req *filterCategoriesRequest) (*filterCategoriesResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.MerchantId == "" {
+		return nil, pe.New(409, "merchant id cannot be empty")
+	}
+
+	if req.StockId == "" {
+		return nil, pe.New(409, "stock id cannot be empty")
+	}
+
+	categories, err := s.pr.FilterCategory(req.Limit, req.Offset, req.MerchantId, req.StockId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filterCategoriesResponse{categories}, nil
+}
+
+func (s *service) MDleleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.pr.MDelete(req.Ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mDeleteProductsResponse{req.Ids}, nil
 }

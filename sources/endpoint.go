@@ -192,3 +192,126 @@ func makeGetListOfCashBoxesEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type getCategoryByIdRequest struct {
+	Authorization string
+	Id            int64
+}
+
+type getCategoryByIdResponse struct {
+	Category domain.Category `json:"category"`
+}
+
+func makeGetCategoryByIdEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getCategoryByIdRequest)
+		resp, err := s.GetCategoryById(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type createCategoryRequest struct {
+	Authorization string
+	Category      domain.Category `json:"category"`
+}
+
+type createCategoryResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeCreateCategoryEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(createCategoryRequest)
+		resp, err := s.CreateCategory(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type updateCategoryRequest struct {
+	Authorization string
+	Category      domain.Category `json:"category"`
+}
+
+type updateCategoryResponse struct {
+	Category domain.Category `json:"category"`
+}
+
+func makeUpdateCategoryEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(updateCategoryRequest)
+		resp, err := s.UpdateCategory(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type deleteCategoryRequest struct {
+	Authorization string
+	Id            int64
+}
+
+type deleteCategoryResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeDeleteCategoryEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(deleteCategoryRequest)
+		resp, err := s.DeleteCategory(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type filterCategoriesRequest struct {
+	Authorization string
+	Limit         int    `json:"limit"`
+	Offset        int    `json:"offset"`
+	MerchantId    string `json:"merchant_id"`
+	StockId       string `json:"stock_id"`
+}
+
+type filterCategoriesResponse struct {
+	Categories []domain.Category `json:"categories"`
+}
+
+func makeFilterCategoriesEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(filterCategoriesRequest)
+		resp, err := s.FilterCategories(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type mDeleteProductsRequest struct {
+	Authorization string
+	Ids           []int64 `json:"ids"`
+}
+
+type mDeleteProductsResponse struct {
+	Ids []int64 `json:"ids"`
+}
+
+func makeMDeleteProductsEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(mDeleteProductsRequest)
+		resp, err := s.MDleleteProducts(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

@@ -16,7 +16,7 @@ func TestProductPostgres_Get(t *testing.T) {
 
 	pr := ProductPostgres{con}
 
-	product, err := pr.Get(6)
+	product, err := pr.Get(4)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,4 +123,79 @@ func TestProductPostgres_GetProductByBarcode(t *testing.T) {
 	}
 
 	fmt.Printf("%+v", product)
+}
+
+func TestProductPostgres_CreateCategory(t *testing.T) {
+	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pr := ProductPostgres{con}
+
+	id, err := pr.CreateCategory(domain.Category{
+		MerchantId: "45",
+		StockId:    "123",
+		Name:       "ewe test category",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(id)
+}
+
+func TestProductPostgres_DeleteCategory(t *testing.T) {
+
+}
+
+func TestProductPostgres_FilterCategory(t *testing.T) {
+	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pr := ProductPostgres{con}
+
+	categories, err := pr.FilterCategory(10, 0, "45", "123")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%+v", categories)
+}
+
+func TestProductPostgres_UpdateCategory(t *testing.T) {
+
+}
+
+func TestProductPostgres_GetCategory(t *testing.T) {
+	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pr := ProductPostgres{con}
+
+	category, err := pr.GetCategory(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("%+v", category)
+
+}
+
+func TestProductPostgres_MDelete(t *testing.T) {
+	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pr := ProductPostgres{con}
+
+	err = pr.MDelete([]int64{7, 8})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
