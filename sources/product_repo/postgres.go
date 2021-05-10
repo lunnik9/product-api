@@ -74,12 +74,12 @@ func (pr *ProductPostgres) Update(product domain.Product) (*domain.Product, erro
 }
 func (pr *ProductPostgres) Filter(limit, offset int, merchantId, stockId, name string) ([]domain.Product, error) {
 	var (
-		views         []domain.ProductView
-		resp          []domain.Product
-		query         string
-		categryIdsMap = make(map[int64]struct{})
-		categoryIds   []int64
-		categoriesMap = make(map[int64]domain.Category)
+		views          []domain.ProductView
+		resp           []domain.Product
+		query          string
+		categoryIdsMap = make(map[int64]struct{})
+		categoryIds    []int64
+		categoriesMap  = make(map[int64]domain.Category)
 	)
 
 	query = "select * from product  where merchant_id = ? and stock_id = ?"
@@ -95,11 +95,15 @@ func (pr *ProductPostgres) Filter(limit, offset int, merchantId, stockId, name s
 		return nil, pe.New(409, err.Error())
 	}
 
-	for _, view := range views {
-		categryIdsMap[view.CategoryId] = struct{}{}
+	if len(views) == 0 {
+		return resp, nil
 	}
 
-	for category := range categryIdsMap {
+	for _, view := range views {
+		categoryIdsMap[view.CategoryId] = struct{}{}
+	}
+
+	for category := range categoryIdsMap {
 		categoryIds = append(categoryIds, category)
 	}
 

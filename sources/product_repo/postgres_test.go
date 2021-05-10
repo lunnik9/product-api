@@ -99,7 +99,7 @@ func TestProductPostgres_Filter(t *testing.T) {
 
 	pr := ProductPostgres{con}
 
-	products, err := pr.Filter(10, 0, "45", "123", "СЫР")
+	products, err := pr.Filter(10, 0, "45", "1233", "СЫР")
 	if err != nil {
 		t.Fatal(err)
 	}
