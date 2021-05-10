@@ -116,7 +116,7 @@ func TestProductPostgres_GetProductByBarcode(t *testing.T) {
 
 	pr := ProductPostgres{con}
 
-	product, err := pr.GetProductByBarcode("45", "123", "3228024150199")
+	product, err := pr.GetProductByBarcode("45", "123", "125654323456323")
 
 	if err != nil {
 		t.Fatal(err)

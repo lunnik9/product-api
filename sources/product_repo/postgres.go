@@ -2,6 +2,7 @@ package product_repo
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/go-pg/pg/v10"
@@ -133,6 +134,10 @@ func (pr *ProductPostgres) GetProductByBarcode(merchantId, stockId, barcode stri
 	_, err := pr.db.Query(&view, query, merchantId, stockId, barcode)
 	if err != nil {
 		return nil, pe.New(409, err.Error())
+	}
+
+	if reflect.ValueOf(view).IsZero() {
+		return nil, nil
 	}
 
 	product = domain.ProductViewToDomain(view)
