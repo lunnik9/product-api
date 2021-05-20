@@ -257,3 +257,49 @@ func (pr *ProductPostgres) MDelete(ids []int64) error {
 
 	return nil
 }
+
+func (pr *ProductPostgres) SaveTransfer(transfer domain.Transfer) error {
+	product, err := pr.Get(transfer.ProductId)
+	if err != nil {
+		return err
+	}
+
+	switch transfer.Reason {
+	case "received":
+		product.Amount += transfer.Amount
+	case "pulled":
+		product.Amount -= transfer.Amount
+	case "sold":
+		product.Amount -= transfer.Amount
+	default:
+		return pe.New(409, fmt.Sprintf("invalid reason %v", transfer.Reason))
+	}
+
+	product.UpdatedOn = time.Now().UTC()
+	transfer.Timestamp = time.Now().UTC()
+
+	_, err = pr.Update(*product)
+	if err != nil {
+		return err
+	}
+
+	err = pr.InsertTransfer(transfer)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductPostgres) InsertTransfer(transfer domain.Transfer) error {
+	view := domain.TransferDomainToView(transfer)
+
+	view.Timestamp = time.Now().UTC()
+
+	_, err := pr.db.Model(&view).Insert()
+	if err != nil {
+		return pe.New(409, err.Error())
+	}
+
+	return nil
+}

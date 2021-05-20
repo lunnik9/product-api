@@ -2,17 +2,25 @@ package sources
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/lunnik9/product-api/domain"
 	pe "github.com/lunnik9/product-api/product_errors"
 	"github.com/lunnik9/product-api/sources/merch_repo"
 	"github.com/lunnik9/product-api/sources/product_repo"
+	"github.com/lunnik9/product-api/sources/waybill_repo"
 	satori "github.com/satori/go.uuid"
+)
+
+const (
+	WAYBILL_DOC_NUMBER_LEN = 6
 )
 
 type service struct {
 	mr merch_repo.MerchRepo
 	pr product_repo.ProductRepo
+	wr waybill_repo.WaybillRepo
 }
 
 type Service interface {
@@ -33,12 +41,22 @@ type Service interface {
 	UpdateCategory(req *updateCategoryRequest) (*updateCategoryResponse, error)
 	DeleteCategory(req *deleteCategoryRequest) (*deleteCategoryResponse, error)
 	FilterCategories(req *filterCategoriesRequest) (*filterCategoriesResponse, error)
+
+	CreateWaybill(req *createWaybillRequest) (*createWaybillResponse, error)
+	ConductWaybill(req *conductWaybillRequest) (*conductWaybillResponse, error)
+	RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybillResponse, error)
+	DeleteWaybill(req *deleteWaybillRequest) (*deleteWaybillResponse, error)
+	CreateWaybillProduct(req *createWaybillProductRequest) (*createWaybillProductResponse, error)
+	UpdateWaybillProduct(req *updateWaybillProductRequest) (*updateWaybillProductResponse, error)
+	DeleteWaybillProduct(req *deleteWaybillProductRequest) (*deleteWaybillProductResponse, error)
+	GetListOfWaybillProducts(req *getListOfWaybillProductsRequest) (*getListOfWaybillProductsResponse, error)
 }
 
-func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo) Service {
+func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo, wr waybill_repo.WaybillRepo) Service {
 	return &service{
 		mr: mr,
 		pr: pr,
+		wr: wr,
 	}
 }
 
@@ -345,4 +363,257 @@ func (s *service) MDleleteProducts(req *mDeleteProductsRequest) (*mDeleteProduct
 	}
 
 	return &mDeleteProductsResponse{req.Ids}, nil
+}
+
+func (s *service) CreateWaybill(req *createWaybillRequest) (*createWaybillResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Waybill.Status = "draft"
+
+	waybills, err := s.wr.Filter(-1, 0, req.Waybill.Type, "", req.Waybill.MerchantId, req.Waybill.StockId)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Waybill.Number = strconv.Itoa(len(waybills))
+
+	for len(req.Waybill.Number) < WAYBILL_DOC_NUMBER_LEN {
+		req.Waybill.Number = "0" + req.Waybill.Number
+	}
+
+	id, err := s.wr.Create(req.Waybill)
+	if err != nil {
+		return nil, err
+	}
+
+	return &createWaybillResponse{id}, nil
+}
+
+func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	oldWaybill, err := s.wr.Get(req.Waybill.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if oldWaybill.Status != "draft" {
+		return nil, pe.New(409, fmt.Sprintf("cannot conduct waybill w/ status %v", oldWaybill.Status))
+	}
+
+	products, err := s.wr.GetList(-1, 0, req.Waybill.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, product := range products {
+		transfer := domain.Transfer{
+			ProductId:     product.ProductId,
+			SellingPrice:  product.SellingPrice,
+			PurchasePrice: product.PurchasePrice,
+			Amount:        product.Amount,
+			Reason:        "received",
+			Source:        "inwaybill",
+			SourceId:      strconv.FormatInt(req.Waybill.Id, 10),
+		}
+
+		err = s.pr.SaveTransfer(transfer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req.Waybill.Status = "active"
+	req.Waybill.UpdatedOn = time.Now().UTC()
+
+	waybill, err := s.wr.Update(req.Waybill)
+	if err != nil {
+		return nil, err
+	}
+
+	return &conductWaybillResponse{*waybill}, nil
+}
+
+func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybillResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	oldWaybill, err := s.wr.Get(req.Waybill.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if oldWaybill.Status != "active" {
+		return nil, pe.New(409, fmt.Sprintf("cannot rollback waybill w/ status %v", oldWaybill.Status))
+	}
+
+	products, err := s.wr.GetList(-1, 0, req.Waybill.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, product := range products {
+		transfer := domain.Transfer{
+			ProductId:     product.ProductId,
+			SellingPrice:  product.SellingPrice,
+			PurchasePrice: product.PurchasePrice,
+			Amount:        -product.Amount,
+			Reason:        "pulled",
+			Source:        "outwaybill",
+			SourceId:      strconv.FormatInt(req.Waybill.Id, 10),
+		}
+
+		err = s.pr.SaveTransfer(transfer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req.Waybill.Status = "active"
+	req.Waybill.UpdatedOn = time.Now().UTC()
+
+	waybill, err := s.wr.Update(req.Waybill)
+	if err != nil {
+		return nil, err
+	}
+
+	return &rollbackWaybillResponse{*waybill}, nil
+}
+
+func (s *service) DeleteWaybill(req *deleteWaybillRequest) (*deleteWaybillResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.wr.Delete(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleteWaybillResponse{req.Id}, nil
+}
+
+func (s *service) CreateWaybillProduct(req *createWaybillProductRequest) (*createWaybillProductResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill, err := s.wr.Get(req.Product.WaybillId)
+	if err != nil {
+		return nil, err
+	}
+
+	if waybill.Status != "draft" {
+		return nil, pe.New(409, fmt.Sprintf("cannot create product in %v waybill", waybill.Status))
+	}
+
+	_, err = s.wr.CreateProduct(req.Product)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill.TotalCost += req.Product.PurchasePrice * req.Product.Amount
+	waybill.UpdatedOn = time.Now().UTC()
+
+	_, err = s.wr.Update(*waybill)
+	if err != nil {
+		return nil, err
+	}
+
+	return &createWaybillProductResponse{waybill.TotalCost}, nil
+}
+func (s *service) UpdateWaybillProduct(req *updateWaybillProductRequest) (*updateWaybillProductResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill, err := s.wr.Get(req.Product.WaybillId)
+	if err != nil {
+		return nil, err
+	}
+
+	if waybill.Status != "draft" {
+		return nil, pe.New(409, fmt.Sprintf("cannot update product in %v waybill", waybill.Status))
+	}
+
+	oldProduct, err := s.wr.GetProduct(req.Product.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.wr.UpdateProduct(req.Product)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill.TotalCost += (req.Product.PurchasePrice * req.Product.Amount) - (oldProduct.PurchasePrice * oldProduct.Amount)
+	waybill.UpdatedOn = time.Now().UTC()
+
+	_, err = s.wr.Update(*waybill)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updateWaybillProductResponse{waybill.TotalCost}, nil
+}
+
+func (s *service) DeleteWaybillProduct(req *deleteWaybillProductRequest) (*deleteWaybillProductResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	product, err := s.wr.GetProduct(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill, err := s.wr.Get(product.WaybillId)
+	if err != nil {
+		return nil, err
+	}
+
+	if waybill.Status != "draft" {
+		return nil, pe.New(409, fmt.Sprintf("cannot update product in %v waybill", waybill.Status))
+	}
+
+	err = s.wr.DeleteProduct(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill.TotalCost -= product.PurchasePrice * product.Amount
+	waybill.UpdatedOn = time.Now().UTC()
+
+	_, err = s.wr.Update(*waybill)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleteWaybillProductResponse{waybill.TotalCost}, nil
+}
+
+func (s *service) GetListOfWaybillProducts(req *getListOfWaybillProductsRequest) (*getListOfWaybillProductsResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	products, err := s.wr.GetList(req.Limit, req.Offset, req.WaybillId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getListOfWaybillProductsResponse{products}, nil
 }

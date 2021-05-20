@@ -199,3 +199,26 @@ func TestProductPostgres_MDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestProductPostgres_SaveTransfer(t *testing.T) {
+	con, err := db.Connect("postgres://pnumlsyvxztrfm:ee24c557c61258df433cfc825ea7e389ef53c907cb43195366c78f73d3c2acf4@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d1dlpo67q6hl95")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pr := ProductPostgres{con}
+
+	err = pr.SaveTransfer(domain.Transfer{
+		ProductId:     4,
+		SellingPrice:  100,
+		PurchasePrice: 500,
+		Amount:        10,
+		Reason:        "sold",
+		Source:        "waybill",
+		SourceId:      "100",
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}

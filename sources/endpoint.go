@@ -315,3 +315,165 @@ func makeMDeleteProductsEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type createWaybillRequest struct {
+	Authorization string
+	Waybill       domain.Waybill `json:"waybill"`
+}
+
+type createWaybillResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeCreateWaybillEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(createWaybillRequest)
+		resp, err := s.CreateWaybill(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type conductWaybillRequest struct {
+	Authorization string
+	Waybill       domain.Waybill `json:"waybill"`
+}
+
+type conductWaybillResponse struct {
+	Waybill domain.Waybill `json:"waybill"`
+}
+
+func makeConductWaybillEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(conductWaybillRequest)
+		resp, err := s.ConductWaybill(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type rollbackWaybillRequest struct {
+	Authorization string
+	Waybill       domain.Waybill `json:"waybill"`
+}
+
+type rollbackWaybillResponse struct {
+	Waybill domain.Waybill `json:"waybill"`
+}
+
+func makeRollbackWaybillEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(rollbackWaybillRequest)
+		resp, err := s.RollbackWaybill(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type deleteWaybillRequest struct {
+	Authorization string
+	Id            int64
+}
+
+type deleteWaybillResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeDeleteWaybillEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(deleteWaybillRequest)
+		resp, err := s.DeleteWaybill(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type createWaybillProductRequest struct {
+	Authorization string
+	Product       domain.WaybillProduct `json:"product"`
+}
+
+type createWaybillProductResponse struct {
+	TotalCost float64 `json:"total_cost"`
+}
+
+func makeCreateWaybillProductEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(createWaybillProductRequest)
+		resp, err := s.CreateWaybillProduct(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type updateWaybillProductRequest struct {
+	Authorization string
+	Product       domain.WaybillProduct `json:"product"`
+}
+
+type updateWaybillProductResponse struct {
+	TotalCost float64 `json:"total_cost"`
+}
+
+func makeUpdateWaybillProductEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(updateWaybillProductRequest)
+		resp, err := s.UpdateWaybillProduct(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type deleteWaybillProductRequest struct {
+	Authorization string
+	Id            int64
+}
+
+type deleteWaybillProductResponse struct {
+	TotalCost float64 `json:"total_cost"`
+}
+
+func makeDeleteWaybillProductEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(deleteWaybillProductRequest)
+		resp, err := s.DeleteWaybillProduct(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type getListOfWaybillProductsRequest struct {
+	Authorization string
+	Limit         int   `json:"limit"`
+	Offset        int   `json:"offset"`
+	WaybillId     int64 `json:"waybill_id"`
+}
+
+type getListOfWaybillProductsResponse struct {
+	Products []domain.WaybillProduct `json:"products"`
+}
+
+func makeGetListOfWaybillProductsEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getListOfWaybillProductsRequest)
+		resp, err := s.GetListOfWaybillProducts(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

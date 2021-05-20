@@ -17,6 +17,9 @@ type ProductRepo interface {
 	UpdateCategory(category domain.Category) (*domain.Category, error)
 	FilterCategory(limit, offset int, merchantId, stockId string) ([]domain.Category, error)
 
+	SaveTransfer(transfer domain.Transfer) error
+	InsertTransfer(transfer domain.Transfer) error
+
 	//SaveTransfer()
 	//GetTransfers()
 }
