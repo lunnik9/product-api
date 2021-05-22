@@ -1,6 +1,7 @@
 package waybill_repo
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -16,18 +17,27 @@ func TestWaybillPostgres_Create(t *testing.T) {
 
 	wr := WaybillPostgres{con}
 
-	_, err = wr.Create(domain.Waybill{
+	waybill := domain.Waybill{
 		MerchantId: "45",
 		StockId:    "123",
 		TotalCost:  100,
-		Status:     "active",
+		Status:     "draft",
 		Type:       "inwaybill",
 		Number:     "228",
-	})
+	}
 
+	_, err = wr.Create(waybill)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	waybillJson, err := json.Marshal(waybill)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(string(waybillJson))
+
 }
 
 func TestWaybillPostgres_Filter(t *testing.T) {
@@ -54,7 +64,7 @@ func TestWaybillPostgres_CreateProduct(t *testing.T) {
 
 	wr := WaybillPostgres{con}
 
-	id, err := wr.CreateProduct(domain.WaybillProduct{
+	product := domain.WaybillProduct{
 		Name:          "opa",
 		Barcode:       "1231231",
 		PurchasePrice: 100,
@@ -62,12 +72,19 @@ func TestWaybillPostgres_CreateProduct(t *testing.T) {
 		Amount:        100,
 		WaybillId:     1,
 		ProductId:     4,
-	})
+	}
+
+	_, err = wr.CreateProduct(product)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Println(id)
+	waybillJson, err := json.Marshal(product)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println(string(waybillJson))
 }
 
 func TestWaybillPostgres_GetList(t *testing.T) {

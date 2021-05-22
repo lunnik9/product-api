@@ -46,6 +46,7 @@ type Service interface {
 	ConductWaybill(req *conductWaybillRequest) (*conductWaybillResponse, error)
 	RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybillResponse, error)
 	DeleteWaybill(req *deleteWaybillRequest) (*deleteWaybillResponse, error)
+	FilterWaybills(req *filterWaybillsRequest) (*filterWaybillsResponse, error)
 	CreateWaybillProduct(req *createWaybillProductRequest) (*createWaybillProductResponse, error)
 	UpdateWaybillProduct(req *updateWaybillProductRequest) (*updateWaybillProductResponse, error)
 	DeleteWaybillProduct(req *deleteWaybillProductRequest) (*deleteWaybillProductResponse, error)
@@ -398,16 +399,16 @@ func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillRes
 		return nil, err
 	}
 
-	oldWaybill, err := s.wr.Get(req.Waybill.Id)
+	waybill, err := s.wr.Get(req.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	if oldWaybill.Status != "draft" {
-		return nil, pe.New(409, fmt.Sprintf("cannot conduct waybill w/ status %v", oldWaybill.Status))
+	if waybill.Status != "draft" {
+		return nil, pe.New(409, fmt.Sprintf("cannot conduct waybill w/ status %v", waybill.Status))
 	}
 
-	products, err := s.wr.GetList(-1, 0, req.Waybill.Id)
+	products, err := s.wr.GetList(-1, 0, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -420,7 +421,7 @@ func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillRes
 			Amount:        product.Amount,
 			Reason:        "received",
 			Source:        "inwaybill",
-			SourceId:      strconv.FormatInt(req.Waybill.Id, 10),
+			SourceId:      strconv.FormatInt(req.Id, 10),
 		}
 
 		err = s.pr.SaveTransfer(transfer)
@@ -429,10 +430,10 @@ func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillRes
 		}
 	}
 
-	req.Waybill.Status = "active"
-	req.Waybill.UpdatedOn = time.Now().UTC()
+	waybill.Status = "active"
+	waybill.UpdatedOn = time.Now().UTC()
 
-	waybill, err := s.wr.Update(req.Waybill)
+	_, err = s.wr.Update(*waybill)
 	if err != nil {
 		return nil, err
 	}
@@ -446,16 +447,16 @@ func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybill
 		return nil, err
 	}
 
-	oldWaybill, err := s.wr.Get(req.Waybill.Id)
+	waybill, err := s.wr.Get(req.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	if oldWaybill.Status != "active" {
-		return nil, pe.New(409, fmt.Sprintf("cannot rollback waybill w/ status %v", oldWaybill.Status))
+	if waybill.Status != "active" {
+		return nil, pe.New(409, fmt.Sprintf("cannot rollback waybill w/ status %v", waybill.Status))
 	}
 
-	products, err := s.wr.GetList(-1, 0, req.Waybill.Id)
+	products, err := s.wr.GetList(-1, 0, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +469,7 @@ func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybill
 			Amount:        -product.Amount,
 			Reason:        "pulled",
 			Source:        "outwaybill",
-			SourceId:      strconv.FormatInt(req.Waybill.Id, 10),
+			SourceId:      strconv.FormatInt(req.Id, 10),
 		}
 
 		err = s.pr.SaveTransfer(transfer)
@@ -477,10 +478,10 @@ func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybill
 		}
 	}
 
-	req.Waybill.Status = "active"
-	req.Waybill.UpdatedOn = time.Now().UTC()
+	waybill.Status = "draft"
+	waybill.UpdatedOn = time.Now().UTC()
 
-	waybill, err := s.wr.Update(req.Waybill)
+	_, err = s.wr.Update(*waybill)
 	if err != nil {
 		return nil, err
 	}
@@ -616,4 +617,18 @@ func (s *service) GetListOfWaybillProducts(req *getListOfWaybillProductsRequest)
 	}
 
 	return &getListOfWaybillProductsResponse{products}, nil
+}
+
+func (s *service) FilterWaybills(req *filterWaybillsRequest) (*filterWaybillsResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	waybills, err := s.wr.Filter(req.Limit, req.Offset, req.WaybillType, req.DocumentNumber, req.MerchantId, req.StockId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &filterWaybillsResponse{waybills}, nil
 }

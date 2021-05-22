@@ -338,7 +338,7 @@ func makeCreateWaybillEndpoint(s Service) endpoint.Endpoint {
 
 type conductWaybillRequest struct {
 	Authorization string
-	Waybill       domain.Waybill `json:"waybill"`
+	Id            int64
 }
 
 type conductWaybillResponse struct {
@@ -358,7 +358,7 @@ func makeConductWaybillEndpoint(s Service) endpoint.Endpoint {
 
 type rollbackWaybillRequest struct {
 	Authorization string
-	Waybill       domain.Waybill `json:"waybill"`
+	Id            int64
 }
 
 type rollbackWaybillResponse struct {
@@ -471,6 +471,31 @@ func makeGetListOfWaybillProductsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(getListOfWaybillProductsRequest)
 		resp, err := s.GetListOfWaybillProducts(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type filterWaybillsRequest struct {
+	Authorization  string
+	Limit          int    `json:"limit"`
+	Offset         int    `json:"offset"`
+	WaybillType    string `json:"waybill_type"`
+	DocumentNumber string `json:"document_number"`
+	MerchantId     string `json:"merchant_id"`
+	StockId        string `json:"stock_id"`
+}
+
+type filterWaybillsResponse struct {
+	Waybills []domain.Waybill `json:"waybills"`
+}
+
+func makeFilterWaybillsEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(filterWaybillsRequest)
+		resp, err := s.FilterWaybills(&req)
 		if err != nil {
 			return nil, err
 		}
