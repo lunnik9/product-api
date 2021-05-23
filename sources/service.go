@@ -47,10 +47,12 @@ type Service interface {
 	RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybillResponse, error)
 	DeleteWaybill(req *deleteWaybillRequest) (*deleteWaybillResponse, error)
 	FilterWaybills(req *filterWaybillsRequest) (*filterWaybillsResponse, error)
+	GetWaybillById(req *getWaybillByIdRequest) (*getWaybillByIdResponse, error)
 	CreateWaybillProduct(req *createWaybillProductRequest) (*createWaybillProductResponse, error)
 	UpdateWaybillProduct(req *updateWaybillProductRequest) (*updateWaybillProductResponse, error)
 	DeleteWaybillProduct(req *deleteWaybillProductRequest) (*deleteWaybillProductResponse, error)
 	GetListOfWaybillProducts(req *getListOfWaybillProductsRequest) (*getListOfWaybillProductsResponse, error)
+	GetWaybillProductById(req *getWaybillProductByIdRequest) (*getWaybillProductByIdResponse, error)
 }
 
 func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo, wr waybill_repo.WaybillRepo) Service {
@@ -630,5 +632,33 @@ func (s *service) FilterWaybills(req *filterWaybillsRequest) (*filterWaybillsRes
 		return nil, err
 	}
 
-	return &filterWaybillsResponse{waybills}, nil
+	return &filterWaybillsResponse{len(waybills), waybills}, nil
+}
+
+func (s *service) GetWaybillById(req *getWaybillByIdRequest) (*getWaybillByIdResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	waybill, err := s.wr.Get(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getWaybillByIdResponse{*waybill}, nil
+}
+
+func (s *service) GetWaybillProductById(req *getWaybillProductByIdRequest) (*getWaybillProductByIdResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	waybillProduct, err := s.wr.GetProduct(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getWaybillProductByIdResponse{*waybillProduct}, nil
 }

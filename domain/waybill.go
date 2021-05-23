@@ -13,6 +13,7 @@ type Waybill struct {
 	Status       string     `json:"status"`
 	Type         string     `json:"type"`
 	Number       string     `json:"number"`
+	Comment      string     `json:"comment"`
 }
 
 type WaybillView struct {
@@ -28,6 +29,7 @@ type WaybillView struct {
 	Status       string     `pg:"status"`
 	Type         string     `pg:"type"`
 	Number       string     `pg:"number"`
+	Comment      string     `pg:"comment"`
 }
 
 func WaybillViewToDomain(view WaybillView) Waybill {
@@ -42,6 +44,7 @@ func WaybillViewToDomain(view WaybillView) Waybill {
 		Status:       view.Status,
 		Type:         view.Type,
 		Number:       view.Number,
+		Comment:      view.Comment,
 	}
 }
 
@@ -57,6 +60,7 @@ func WaybillDomainToView(waybill Waybill) WaybillView {
 		Status:       waybill.Status,
 		Type:         waybill.Type,
 		Number:       waybill.Number,
+		Comment:      waybill.Comment,
 	}
 }
 

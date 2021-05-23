@@ -84,11 +84,11 @@ func (mr *MerchPostgres) GetStocksOfMerchant(merchId string) ([]domain.Stock, er
 	var (
 		stockViews []domain.StockView
 		stocks     []domain.Stock
+		//query string
 	)
 
-	query := mr.db.Model(&stockViews)
-
-	err := query.Select()
+	//query=""
+	err := mr.db.Model(&stockViews).Select()
 	if err != nil {
 		return nil, pe.New(503, err.Error())
 	}

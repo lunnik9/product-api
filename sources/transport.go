@@ -192,6 +192,20 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	getWaybillById := kithttp.NewServer(
+		makeGetWaybillByIdEndpoint(ss),
+		decodeGetWaybillByIdRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	getWaybillProductById := kithttp.NewServer(
+		makeGetWaybillProductByIdEndpoint(ss),
+		decodeGetWaybillProductByIdRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -218,10 +232,12 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/waybill/conduct/{waybill_id}", conductWaybill).Methods("GET")
 	r.Handle("/waybill/rollback/{waybill_id}", rollbackWaybill).Methods("GET")
 	r.Handle("/waybill/{waybill_id}", deleteWaybill).Methods("DELETE")
+	r.Handle("/waybill/{waybill_id}", getWaybillById).Methods("GET")
 	r.Handle("/waybill/filter", filterWaybills).Methods("POST")
 	r.Handle("/waybill/product", createWaybillProduct).Methods("POST")
 	r.Handle("/waybill/product", updateWaybillProduct).Methods("PUT")
-	r.Handle("/waybill/product/{waybill_id}", deleteWaybillProduct).Methods("DELETE")
+	r.Handle("/waybill/product/{product_id}", deleteWaybillProduct).Methods("DELETE")
+	r.Handle("/waybill/product/{product_id}", getWaybillProductById).Methods("GET")
 	r.Handle("/waybill/get_list", getWaybillProductsList).Methods("POST")
 
 	return r
@@ -603,7 +619,7 @@ func decodeUpdateWaybillProductRequest(_ context.Context, r *http.Request) (inte
 func decodeDeleteWaybillProductRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
 
-	productIdString, ok := vars["waybill_id"]
+	productIdString, ok := vars["product_id"]
 	if !ok {
 		return nil, pe.New(409, "no merch id provided")
 	}
@@ -635,6 +651,48 @@ func decodeGetWaybillProductsList(_ context.Context, r *http.Request) (interface
 
 	body.Authorization = token
 	return body, nil
+}
+
+func decodeGetWaybillByIdRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	productIdString, ok := vars["waybill_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	productId, err := strconv.ParseInt(productIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return getWaybillByIdRequest{token, productId}, nil
+}
+
+func decodeGetWaybillProductByIdRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	productIdString, ok := vars["product_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	productId, err := strconv.ParseInt(productIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return getWaybillProductByIdRequest{token, productId}, nil
 }
 
 func getAuthorizationToken(r *http.Request) (string, error) {
