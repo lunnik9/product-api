@@ -174,3 +174,27 @@ func (wr *WaybillPostgres) GetProduct(id int64) (*domain.WaybillProduct, error) 
 
 	return &product, nil
 }
+
+func (wr *WaybillPostgres) GetProductByBarcode(barcode string, waybillId int64) (*domain.WaybillProduct, error) {
+	var (
+		view    domain.WaybillProductView
+		product domain.WaybillProduct
+		query   string
+	)
+
+	query = "select * from waybill_product where waybill_id = ? and barcode = ?"
+
+	_, err := wr.db.Query(&view, query, waybillId, barcode)
+	if err != nil {
+		return nil, err
+	}
+
+	if &view == nil {
+		return nil, nil
+	}
+
+	product = domain.WaybillProductViewToDomain(view)
+
+	return &product, nil
+
+}

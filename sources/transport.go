@@ -206,6 +206,20 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	getWaybillProductByBarcode := kithttp.NewServer(
+		makeGetWaybillProductByBarcodeEndpoint(ss),
+		decodeGetWaybillProductByProductIdRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	getListOfTransfers := kithttp.NewServer(
+		makeGetListOfTransfersEndpoint(ss),
+		decodeGetListOfTransfersRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -222,6 +236,8 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/product/filter", filterProducts).Methods("POST")
 	r.Handle("/product/mdelete", mDeleteProducts).Methods("POST")
 
+	r.Handle("/transfer/get_list", getListOfTransfers).Methods("POST")
+
 	r.Handle("/category/{category_id}", getCategoryById).Methods("GET")
 	r.Handle("/category", createCategory).Methods("POST")
 	r.Handle("/category", updateCategory).Methods("PUT")
@@ -234,11 +250,13 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/waybill/{waybill_id}", deleteWaybill).Methods("DELETE")
 	r.Handle("/waybill/{waybill_id}", getWaybillById).Methods("GET")
 	r.Handle("/waybill/filter", filterWaybills).Methods("POST")
+
 	r.Handle("/waybill/product", createWaybillProduct).Methods("POST")
 	r.Handle("/waybill/product", updateWaybillProduct).Methods("PUT")
 	r.Handle("/waybill/product/{product_id}", deleteWaybillProduct).Methods("DELETE")
 	r.Handle("/waybill/product/{product_id}", getWaybillProductById).Methods("GET")
-	r.Handle("/waybill/get_list", getWaybillProductsList).Methods("POST")
+	r.Handle("/waybill/product/get_list", getWaybillProductsList).Methods("POST")
+	r.Handle("/waybill/product/get", getWaybillProductByBarcode).Methods("POST")
 
 	return r
 }
@@ -693,6 +711,38 @@ func decodeGetWaybillProductByIdRequest(_ context.Context, r *http.Request) (int
 	}
 
 	return getWaybillProductByIdRequest{token, productId}, nil
+}
+
+func decodeGetListOfTransfersRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body getListOfTransfersRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeGetWaybillProductByProductIdRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body getWaybillProductByBarcodeRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
 }
 
 func getAuthorizationToken(r *http.Request) (string, error) {

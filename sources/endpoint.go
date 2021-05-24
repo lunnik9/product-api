@@ -543,3 +543,47 @@ func makeGetWaybillProductByIdEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type getListOfTransfersRequest struct {
+	Authorization string
+	Id            int64 `json:"id"`
+	Limit         int   `json:"limit"`
+	Offset        int   `json:"offset"`
+}
+
+type getListOfTransfersResponse struct {
+	Transfers []domain.Transfer `json:"transfers"`
+}
+
+func makeGetListOfTransfersEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getListOfTransfersRequest)
+		resp, err := s.GetListOfTransfers(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type getWaybillProductByBarcodeRequest struct {
+	Authorization string
+	Barcode       string `json:"barcode"`
+	WaybillId     int64  `json:"waybill_id"`
+}
+
+type getWaybillProductByBarcodeResponse struct {
+	Product domain.WaybillProduct `json:"product"`
+	Found   bool                  `json:"found"`
+}
+
+func makeGetWaybillProductByBarcodeEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getWaybillProductByBarcodeRequest)
+		resp, err := s.GetWaybillProductByBarcode(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

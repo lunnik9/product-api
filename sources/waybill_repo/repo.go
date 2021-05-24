@@ -16,4 +16,5 @@ type WaybillRepo interface {
 	UpdateProduct(product domain.WaybillProduct) (*domain.WaybillProduct, error)
 	DeleteProduct(id int64) error
 	GetList(limit, offset int, waybillId int64) ([]domain.WaybillProduct, error)
+	GetProductByBarcode(barcode string, waybillId int64) (*domain.WaybillProduct, error)
 }

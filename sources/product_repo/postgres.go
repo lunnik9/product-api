@@ -303,3 +303,22 @@ func (pr *ProductPostgres) InsertTransfer(transfer domain.Transfer) error {
 
 	return nil
 }
+
+func (pr *ProductPostgres) GetTransfers(productId int64, limit, offset int) ([]domain.Transfer, error) {
+	var (
+		views     []domain.TransferView
+		transfers []domain.Transfer
+	)
+
+	_, err := pr.db.Query(&views, "select * from transfer where product_id = ? limit ? offset ?",
+		productId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, view := range views {
+		transfers = append(transfers, domain.TransferViewToDomain(view))
+	}
+
+	return transfers, nil
+}

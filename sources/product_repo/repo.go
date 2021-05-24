@@ -19,7 +19,5 @@ type ProductRepo interface {
 
 	SaveTransfer(transfer domain.Transfer) error
 	InsertTransfer(transfer domain.Transfer) error
-
-	//SaveTransfer()
-	//GetTransfers()
+	GetTransfers(productId int64, limit, offset int) ([]domain.Transfer, error)
 }

@@ -36,6 +36,8 @@ type Service interface {
 	FilterProducts(req *filterProductsRequest) (*filterProductsResponse, error)
 	MDleleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error)
 
+	GetListOfTransfers(req *getListOfTransfersRequest) (*getListOfTransfersResponse, error)
+
 	GetCategoryById(req *getCategoryByIdRequest) (*getCategoryByIdResponse, error)
 	CreateCategory(req *createCategoryRequest) (*createCategoryResponse, error)
 	UpdateCategory(req *updateCategoryRequest) (*updateCategoryResponse, error)
@@ -53,6 +55,7 @@ type Service interface {
 	DeleteWaybillProduct(req *deleteWaybillProductRequest) (*deleteWaybillProductResponse, error)
 	GetListOfWaybillProducts(req *getListOfWaybillProductsRequest) (*getListOfWaybillProductsResponse, error)
 	GetWaybillProductById(req *getWaybillProductByIdRequest) (*getWaybillProductByIdResponse, error)
+	GetWaybillProductByBarcode(req *getWaybillProductByBarcodeRequest) (*getWaybillProductByBarcodeResponse, error)
 }
 
 func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo, wr waybill_repo.WaybillRepo) Service {
@@ -661,4 +664,36 @@ func (s *service) GetWaybillProductById(req *getWaybillProductByIdRequest) (*get
 	}
 
 	return &getWaybillProductByIdResponse{*waybillProduct}, nil
+}
+
+func (s *service) GetWaybillProductByBarcode(req *getWaybillProductByBarcodeRequest) (*getWaybillProductByBarcodeResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	product, err := s.wr.GetProductByBarcode(req.Barcode, req.WaybillId)
+	if err != nil {
+		return nil, err
+	}
+
+	if product == nil {
+		return &getWaybillProductByBarcodeResponse{Found: false}, nil
+	}
+
+	return &getWaybillProductByBarcodeResponse{*product, true}, nil
+}
+
+func (s *service) GetListOfTransfers(req *getListOfTransfersRequest) (*getListOfTransfersResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	transfers, err := s.pr.GetTransfers(req.Id, req.Limit, req.Offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getListOfTransfersResponse{transfers}, nil
 }
