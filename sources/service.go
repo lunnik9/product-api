@@ -395,7 +395,7 @@ func (s *service) CreateWaybill(req *createWaybillRequest) (*createWaybillRespon
 		return nil, err
 	}
 
-	return &createWaybillResponse{id}, nil
+	return &createWaybillResponse{id, req.Waybill.Number}, nil
 }
 
 func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillResponse, error) {
