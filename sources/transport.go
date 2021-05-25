@@ -241,6 +241,13 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	syncProducts := kithttp.NewServer(
+		makeSyncProductsEndpoint(ss),
+		decodeSyncProductsRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -256,6 +263,7 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/product/{product_id}", deleteProduct).Methods("DELETE")
 	r.Handle("/product/filter", filterProducts).Methods("POST")
 	r.Handle("/product/mdelete", mDeleteProducts).Methods("POST")
+	r.Handle("/product/sync", syncProducts).Methods("POST")
 
 	r.Handle("/transfer/get_list", getListOfTransfers).Methods("POST")
 
@@ -809,6 +817,21 @@ func decodeSaveOrderRequest(_ context.Context, r *http.Request) (interface{}, er
 
 func decodeGetOrdersListRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var body getOrdersListRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+func decodeSyncProductsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body syncProductsRequest
 
 	token, err := getAuthorizationToken(r)
 	if err != nil {

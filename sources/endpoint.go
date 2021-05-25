@@ -2,6 +2,7 @@ package sources
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/lunnik9/product-api/domain"
@@ -308,7 +309,7 @@ type mDeleteProductsResponse struct {
 func makeMDeleteProductsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(mDeleteProductsRequest)
-		resp, err := s.MDleleteProducts(&req)
+		resp, err := s.MDleteProducts(&req)
 		if err != nil {
 			return nil, err
 		}
@@ -645,6 +646,28 @@ func makeGetOrdersListEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(getOrdersListRequest)
 		resp, err := s.GetOrdersList(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type syncProductsRequest struct {
+	Authorization string
+	MerchantId    string    `json:"merchant_id"`
+	StockId       string    `json:"stock_id"`
+	LastUpdate    time.Time `json:"last_update"`
+}
+
+type syncProductsResponse struct {
+	Products []domain.Product `json:"products"`
+}
+
+func makeSyncProductsEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(syncProductsRequest)
+		resp, err := s.SyncProducts(&req)
 		if err != nil {
 			return nil, err
 		}

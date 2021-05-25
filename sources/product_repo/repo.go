@@ -1,6 +1,10 @@
 package product_repo
 
-import "github.com/lunnik9/product-api/domain"
+import (
+	"time"
+
+	"github.com/lunnik9/product-api/domain"
+)
 
 type ProductRepo interface {
 	Get(id int64) (*domain.Product, error)
@@ -20,4 +24,6 @@ type ProductRepo interface {
 	SaveTransfer(transfer domain.Transfer) error
 	InsertTransfer(transfer domain.Transfer) error
 	GetTransfers(productId int64, limit, offset int) ([]domain.Transfer, error)
+
+	Sync(merchantId, stockId string, lastUpdate time.Time) ([]domain.Product, error)
 }

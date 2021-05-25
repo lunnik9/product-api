@@ -36,7 +36,8 @@ type Service interface {
 	UpdateProduct(req *updateProductRequest) (*updateProductResponse, error)
 	DeleteProduct(req *deleteProductRequest) (*deleteProductResponse, error)
 	FilterProducts(req *filterProductsRequest) (*filterProductsResponse, error)
-	MDleleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error)
+	MDleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error)
+	SyncProducts(req *syncProductsRequest) (*syncProductsResponse, error)
 
 	GetListOfTransfers(req *getListOfTransfersRequest) (*getListOfTransfersResponse, error)
 
@@ -364,7 +365,7 @@ func (s *service) FilterCategories(req *filterCategoriesRequest) (*filterCategor
 	return &filterCategoriesResponse{categories}, nil
 }
 
-func (s *service) MDleleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error) {
+func (s *service) MDleteProducts(req *mDeleteProductsRequest) (*mDeleteProductsResponse, error) {
 	err := s.mr.CheckRights(req.Authorization)
 	if err != nil {
 		return nil, err
@@ -764,4 +765,18 @@ func (s *service) GetOrdersList(req *getOrdersListRequest) (*getOrdersListRespon
 	}
 
 	return &getOrdersListResponse{orders}, nil
+}
+
+func (s *service) SyncProducts(req *syncProductsRequest) (*syncProductsResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	products, err := s.pr.Sync(req.MerchantId, req.StockId, req.LastUpdate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &syncProductsResponse{products}, nil
 }

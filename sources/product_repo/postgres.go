@@ -280,12 +280,12 @@ func (pr *ProductPostgres) SaveTransfer(transfer domain.Transfer) error {
 
 	_, err = pr.Update(*product)
 	if err != nil {
-		return err
+		return pe.New(409, err.Error())
 	}
 
 	err = pr.InsertTransfer(transfer)
 	if err != nil {
-		return err
+		return pe.New(409, err.Error())
 	}
 
 	return nil
@@ -313,7 +313,7 @@ func (pr *ProductPostgres) GetTransfers(productId int64, limit, offset int) ([]d
 	_, err := pr.db.Query(&views, "select * from transfer where product_id = ? limit ? offset ?",
 		productId, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, pe.New(409, err.Error())
 	}
 
 	for _, view := range views {
@@ -321,4 +321,26 @@ func (pr *ProductPostgres) GetTransfers(productId int64, limit, offset int) ([]d
 	}
 
 	return transfers, nil
+}
+
+func (pr *ProductPostgres) Sync(merchantId, stockId string, lastUpdate time.Time) ([]domain.Product, error) {
+	var (
+		views []domain.ProductView
+		resp  []domain.Product
+		query string
+	)
+
+	query = "select * from product where updated_on > timestamp ? and merchant_id = ? and stock_id = ?"
+
+	_, err := pr.db.Query(&views, query, lastUpdate.Format("2006-01-02 15:04:05.999"), merchantId, stockId)
+	if err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	for _, view := range views {
+		resp = append(resp, domain.ProductViewToDomain(view))
+	}
+
+	return resp, nil
+
 }
