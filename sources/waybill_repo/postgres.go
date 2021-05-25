@@ -2,6 +2,7 @@ package waybill_repo
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/go-pg/pg/v10"
@@ -189,7 +190,7 @@ func (wr *WaybillPostgres) GetProductByBarcode(barcode string, waybillId int64) 
 		return nil, err
 	}
 
-	if &view == nil {
+	if reflect.ValueOf(view).IsZero() {
 		return nil, nil
 	}
 
