@@ -588,3 +588,66 @@ func makeGetWaybillProductByBarcodeEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type saveOrderRequest struct {
+	Authorization string
+	Order         domain.Order `json:"order"`
+}
+
+type saveOrderResponse struct {
+	Id int64 `json:"id"`
+}
+
+func makeSaveOrderEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(saveOrderRequest)
+		resp, err := s.SaveOrder(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type getOrderRequest struct {
+	Authorization string
+	Id            int64 `json:"id"`
+}
+
+type getOrderResponse struct {
+	Order domain.Order `json:"order"`
+}
+
+func makeGetOrderEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getOrderRequest)
+		resp, err := s.GetOrder(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
+
+type getOrdersListRequest struct {
+	Authorization string
+	MerchantId    string `json:"merchant_id"`
+	StockId       string `json:"stock_id"`
+	Limit         int    `json:"limit"`
+	Offset        int    `json:"offset"`
+}
+
+type getOrdersListResponse struct {
+	Orders []domain.Order `json:"orders"`
+}
+
+func makeGetOrdersListEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(getOrdersListRequest)
+		resp, err := s.GetOrdersList(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}

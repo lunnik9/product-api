@@ -187,7 +187,7 @@ func (wr *WaybillPostgres) GetProductByBarcode(barcode string, waybillId int64) 
 
 	_, err := wr.db.Query(&view, query, waybillId, barcode)
 	if err != nil {
-		return nil, err
+		return nil, pe.New(409, err.Error())
 	}
 
 	if reflect.ValueOf(view).IsZero() {

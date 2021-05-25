@@ -7,23 +7,27 @@ type Order struct {
 	Timestamp  time.Time   `json:"timestamp"`
 	MerchantId string      `json:"merchant_id"`
 	StockId    string      `json:"stock_id"`
-	CashBoxId  string      `json:"cashbox_id"`
-	OrderItems []OrderItem `json:"order_items"`
+	CashBoxId  string      `json:"cash_box_id"`
+	OrderItems []OrderItem `json:"order_items,omitempty"`
 	TotalSum   float64     `json:"total_sum"`
 	PayType    string      `json:"pay_type"`
 }
 
 type OrderItem struct {
-	ProductId int64   `json:"product_id"`
-	Amount    float64 `json:"amount"`
+	ProductId     int64   `json:"product_id"`
+	Amount        float64 `json:"amount"`
+	SellingPrice  float64 `json:"selling_price"`
+	PurchasePrice float64 `json:"purchase_price"`
 }
 
 type OrderItemView struct {
 	tableName struct{} `pg:"order_product"`
 
-	OrderId   int64   `pg:"order_id"`
-	ProductId int64   `pg:"product_id"`
-	Amount    float64 `pg:"amount"`
+	OrderId       int64   `pg:"order_id"`
+	ProductId     int64   `pg:"product_id"`
+	Amount        float64 `pg:"amount"`
+	SellingPrice  float64 `pg:"selling_price"`
+	PurchasePrice float64 `pg:"purchase_price"`
 }
 
 type OrderView struct {
@@ -33,7 +37,7 @@ type OrderView struct {
 	Timestamp  time.Time `pg:"timestamp"`
 	MerchantId string    `pg:"merchant_id"`
 	StockId    string    `pg:"stock_id"`
-	CashBoxId  string    `pg:"cashbox_id"`
+	CashBoxId  string    `pg:"cash_box_id"`
 	TotalSum   float64   `pg:"total_sum"`
 	PayType    string    `pg:"pay_type"`
 }
@@ -50,8 +54,10 @@ func OrderViewToDomain(view OrderView, items []OrderItemView) Order {
 	}
 	for _, item := range items {
 		order.OrderItems = append(order.OrderItems, OrderItem{
-			ProductId: item.ProductId,
-			Amount:    item.Amount,
+			ProductId:     item.ProductId,
+			Amount:        item.Amount,
+			SellingPrice:  item.SellingPrice,
+			PurchasePrice: item.PurchasePrice,
 		})
 	}
 	return order
@@ -62,9 +68,11 @@ func OrderDomainToView(order Order) (OrderView, []OrderItemView) {
 
 	for _, item := range order.OrderItems {
 		items = append(items, OrderItemView{
-			OrderId:   order.Id,
-			ProductId: item.ProductId,
-			Amount:    item.Amount,
+			OrderId:       order.Id,
+			ProductId:     item.ProductId,
+			Amount:        item.Amount,
+			SellingPrice:  item.SellingPrice,
+			PurchasePrice: item.PurchasePrice,
 		})
 	}
 

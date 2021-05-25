@@ -8,6 +8,7 @@ import (
 	"github.com/lunnik9/product-api/domain"
 	pe "github.com/lunnik9/product-api/product_errors"
 	"github.com/lunnik9/product-api/sources/merch_repo"
+	"github.com/lunnik9/product-api/sources/order_repo"
 	"github.com/lunnik9/product-api/sources/product_repo"
 	"github.com/lunnik9/product-api/sources/waybill_repo"
 	satori "github.com/satori/go.uuid"
@@ -21,6 +22,7 @@ type service struct {
 	mr merch_repo.MerchRepo
 	pr product_repo.ProductRepo
 	wr waybill_repo.WaybillRepo
+	or order_repo.OrderRepo
 }
 
 type Service interface {
@@ -56,13 +58,18 @@ type Service interface {
 	GetListOfWaybillProducts(req *getListOfWaybillProductsRequest) (*getListOfWaybillProductsResponse, error)
 	GetWaybillProductById(req *getWaybillProductByIdRequest) (*getWaybillProductByIdResponse, error)
 	GetWaybillProductByBarcode(req *getWaybillProductByBarcodeRequest) (*getWaybillProductByBarcodeResponse, error)
+
+	SaveOrder(req *saveOrderRequest) (*saveOrderResponse, error)
+	GetOrder(req *getOrderRequest) (*getOrderResponse, error)
+	GetOrdersList(req *getOrdersListRequest) (*getOrdersListResponse, error)
 }
 
-func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo, wr waybill_repo.WaybillRepo) Service {
+func NewService(mr merch_repo.MerchRepo, pr product_repo.ProductRepo, wr waybill_repo.WaybillRepo, or order_repo.OrderRepo) Service {
 	return &service{
 		mr: mr,
 		pr: pr,
 		wr: wr,
+		or: or,
 	}
 }
 
@@ -696,4 +703,65 @@ func (s *service) GetListOfTransfers(req *getListOfTransfersRequest) (*getListOf
 	}
 
 	return &getListOfTransfersResponse{transfers}, nil
+}
+
+func (s *service) SaveOrder(req *saveOrderRequest) (*saveOrderResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Order.Timestamp = time.Now().UTC()
+
+	id, err := s.or.Save(req.Order)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range req.Order.OrderItems {
+		transfer := domain.Transfer{
+			ProductId:     item.ProductId,
+			SellingPrice:  item.SellingPrice,
+			PurchasePrice: item.PurchasePrice,
+			Amount:        item.Amount,
+			Reason:        "sold",
+			Source:        "order",
+			SourceId:      strconv.FormatInt(id, 10),
+		}
+
+		err = s.pr.SaveTransfer(transfer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &saveOrderResponse{id}, nil
+}
+
+func (s *service) GetOrder(req *getOrderRequest) (*getOrderResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	order, err := s.or.Get(req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getOrderResponse{*order}, nil
+}
+
+func (s *service) GetOrdersList(req *getOrdersListRequest) (*getOrdersListResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	orders, err := s.or.GetList(req.StockId, req.MerchantId, req.Limit, req.Offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return &getOrdersListResponse{orders}, nil
 }

@@ -220,6 +220,27 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	saveOrder := kithttp.NewServer(
+		makeSaveOrderEndpoint(ss),
+		decodeSaveOrderRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	getOrder := kithttp.NewServer(
+		makeGetOrderEndpoint(ss),
+		decodeGetOrderRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	getOrdersList := kithttp.NewServer(
+		makeGetOrdersListEndpoint(ss),
+		decodeGetOrdersListRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -257,6 +278,10 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/waybill/product/{product_id}", getWaybillProductById).Methods("GET")
 	r.Handle("/waybill/product/get_list", getWaybillProductsList).Methods("POST")
 	r.Handle("/waybill/product/get", getWaybillProductByBarcode).Methods("POST")
+
+	r.Handle("/order/{order_id}", getOrder).Methods("GET")
+	r.Handle("/order/list", getOrdersList).Methods("POST")
+	r.Handle("/order/create", saveOrder).Methods("POST")
 
 	return r
 }
@@ -713,6 +738,27 @@ func decodeGetWaybillProductByIdRequest(_ context.Context, r *http.Request) (int
 	return getWaybillProductByIdRequest{token, productId}, nil
 }
 
+func decodeGetOrderRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+
+	orderIdString, ok := vars["order_id"]
+	if !ok {
+		return nil, pe.New(409, "no merch id provided")
+	}
+
+	orderId, err := strconv.ParseInt(orderIdString, 10, 64)
+	if err != nil {
+		return nil, pe.New(409, "no product id provided")
+	}
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return getOrderRequest{token, orderId}, nil
+}
+
 func decodeGetListOfTransfersRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var body getListOfTransfersRequest
 
@@ -731,6 +777,38 @@ func decodeGetListOfTransfersRequest(_ context.Context, r *http.Request) (interf
 
 func decodeGetWaybillProductByProductIdRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var body getWaybillProductByBarcodeRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeSaveOrderRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body saveOrderRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeGetOrdersListRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body getOrdersListRequest
 
 	token, err := getAuthorizationToken(r)
 	if err != nil {
