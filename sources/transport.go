@@ -248,6 +248,13 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	updateWaybill := kithttp.NewServer(
+		makeUpdateWaybillEndpoint(ss),
+		decodeUpdateWaybillRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/merch/login", login).Methods("POST")
@@ -274,6 +281,7 @@ func MakeHandler(ss Service, logger kitlog.Logger) http.Handler {
 	r.Handle("/category/filter", filterCategories).Methods("POST")
 
 	r.Handle("/waybill/create", createWaybill).Methods("POST")
+	r.Handle("/waybill/update", updateWaybill).Methods("PUT")
 	r.Handle("/waybill/conduct/{waybill_id}", conductWaybill).Methods("GET")
 	r.Handle("/waybill/rollback/{waybill_id}", rollbackWaybill).Methods("GET")
 	r.Handle("/waybill/{waybill_id}", deleteWaybill).Methods("DELETE")
@@ -830,8 +838,25 @@ func decodeGetOrdersListRequest(_ context.Context, r *http.Request) (interface{}
 	body.Authorization = token
 	return body, nil
 }
+
 func decodeSyncProductsRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var body syncProductsRequest
+
+	token, err := getAuthorizationToken(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	body.Authorization = token
+	return body, nil
+}
+
+func decodeUpdateWaybillRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	var body updateWaybillRequest
 
 	token, err := getAuthorizationToken(r)
 	if err != nil {

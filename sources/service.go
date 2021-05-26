@@ -53,6 +53,7 @@ type Service interface {
 	DeleteWaybill(req *deleteWaybillRequest) (*deleteWaybillResponse, error)
 	FilterWaybills(req *filterWaybillsRequest) (*filterWaybillsResponse, error)
 	GetWaybillById(req *getWaybillByIdRequest) (*getWaybillByIdResponse, error)
+	UpdateWaybill(req *updateWaybillRequest) (*updateWaybilllResponse, error)
 	CreateWaybillProduct(req *createWaybillProductRequest) (*createWaybillProductResponse, error)
 	UpdateWaybillProduct(req *updateWaybillProductRequest) (*updateWaybillProductResponse, error)
 	DeleteWaybillProduct(req *deleteWaybillProductRequest) (*deleteWaybillProductResponse, error)
@@ -779,4 +780,17 @@ func (s *service) SyncProducts(req *syncProductsRequest) (*syncProductsResponse,
 	}
 
 	return &syncProductsResponse{products}, nil
+}
+
+func (s *service) UpdateWaybill(req *updateWaybillRequest) (*updateWaybilllResponse, error) {
+	err := s.mr.CheckRights(req.Authorization)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.wr.Update(req.Waybill)
+	if err != nil {
+		return nil, err
+	}
+	return &updateWaybilllResponse{"ok"}, nil
 }

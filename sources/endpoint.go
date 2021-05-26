@@ -674,3 +674,23 @@ func makeSyncProductsEndpoint(s Service) endpoint.Endpoint {
 		return resp, nil
 	}
 }
+
+type updateWaybillRequest struct {
+	Authorization string
+	Waybill       domain.Waybill `json:"waybill"`
+}
+
+type updateWaybilllResponse struct {
+	Message string `json:"message"`
+}
+
+func makeUpdateWaybillEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(updateWaybillRequest)
+		resp, err := s.UpdateWaybill(&req)
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+}
