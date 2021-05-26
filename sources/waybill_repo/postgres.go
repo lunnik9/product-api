@@ -43,9 +43,6 @@ func (wr *WaybillPostgres) Delete(id int64) error {
 }
 
 func (wr *WaybillPostgres) Create(waybill domain.Waybill) (int64, error) {
-	waybill.CreatedOn = time.Now().UTC()
-	waybill.UpdatedOn = time.Now().UTC()
-
 	view := domain.WaybillDomainToView(waybill)
 
 	_, err := wr.db.Model(&view).Returning("id").Insert()

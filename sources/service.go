@@ -399,12 +399,15 @@ func (s *service) CreateWaybill(req *createWaybillRequest) (*createWaybillRespon
 		req.Waybill.Number = "0" + req.Waybill.Number
 	}
 
+	req.Waybill.CreatedOn = time.Now().UTC()
+	req.Waybill.UpdatedOn = time.Now().UTC()
+
 	id, err := s.wr.Create(req.Waybill)
 	if err != nil {
 		return nil, err
 	}
 
-	return &createWaybillResponse{id, req.Waybill.Number}, nil
+	return &createWaybillResponse{id, req.Waybill.Number, req.Waybill.CreatedOn, req.Waybill.UpdatedOn}, nil
 }
 
 func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillResponse, error) {
