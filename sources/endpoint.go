@@ -323,8 +323,10 @@ type createWaybillRequest struct {
 }
 
 type createWaybillResponse struct {
-	Id     int64  `json:"id"`
-	Number string `json:"number"`
+	Id        int64     `json:"id"`
+	Number    string    `json:"number"`
+	CreatedOn time.Time `json:"created_on"`
+	UpdatedOn time.Time `json:"updated_on"`
 }
 
 func makeCreateWaybillEndpoint(s Service) endpoint.Endpoint {
