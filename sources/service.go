@@ -532,7 +532,7 @@ func (s *service) CreateWaybillProduct(req *createWaybillProductRequest) (*creat
 		return nil, pe.New(409, fmt.Sprintf("cannot create product in %v waybill", waybill.Status))
 	}
 
-	_, err = s.wr.CreateProduct(req.Product)
+	id, err := s.wr.CreateProduct(req.Product)
 	if err != nil {
 		return nil, err
 	}
@@ -545,7 +545,7 @@ func (s *service) CreateWaybillProduct(req *createWaybillProductRequest) (*creat
 		return nil, err
 	}
 
-	return &createWaybillProductResponse{waybill.TotalCost}, nil
+	return &createWaybillProductResponse{waybill.TotalCost, id}, nil
 }
 func (s *service) UpdateWaybillProduct(req *updateWaybillProductRequest) (*updateWaybillProductResponse, error) {
 	err := s.mr.CheckRights(req.Authorization)

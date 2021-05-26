@@ -405,6 +405,7 @@ type createWaybillProductRequest struct {
 
 type createWaybillProductResponse struct {
 	TotalCost float64 `json:"total_cost"`
+	ProductId int64   `json:"product_id"`
 }
 
 func makeCreateWaybillProductEndpoint(s Service) endpoint.Endpoint {
