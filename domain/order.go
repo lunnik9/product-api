@@ -19,6 +19,7 @@ type OrderItem struct {
 	SellingPrice  float64 `json:"selling_price"`
 	PurchasePrice float64 `json:"purchase_price"`
 	Barcode       string  `json:"barcode"`
+	Name          string  `json:"name"`
 }
 
 type OrderItemView struct {
@@ -29,6 +30,8 @@ type OrderItemView struct {
 	Amount        float64 `pg:"amount"`
 	SellingPrice  float64 `pg:"selling_price"`
 	PurchasePrice float64 `pg:"purchase_price"`
+	Barcode       string
+	Name          string
 }
 
 type OrderView struct {
@@ -60,6 +63,8 @@ func OrderViewToDomain(view OrderView, items []OrderItemView) Order {
 			Amount:        item.Amount,
 			SellingPrice:  item.SellingPrice,
 			PurchasePrice: item.PurchasePrice,
+			Barcode:       item.Barcode,
+			Name:          item.Name,
 		})
 	}
 	return order

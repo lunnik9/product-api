@@ -37,13 +37,31 @@ func (or *OrderPostgres) Get(id int64) (*domain.Order, error) {
 
 func (or *OrderPostgres) getOrderItemViews(orderId int64) ([]domain.OrderItemView, error) {
 	var (
-		views []domain.OrderItemView
-		query = "select * from order_product where order_id= ?"
+		views      []domain.OrderItemView
+		query      = "select * from order_product where order_id= ?"
+		productIds []int64
 	)
 
 	_, err := or.db.Query(&views, query, orderId)
 	if err != nil {
 		return nil, pe.New(409, err.Error())
+	}
+
+	for _, item := range views {
+		productIds = append(productIds, item.ProductId)
+	}
+
+	if len(views) != 0 {
+		productMap, err := or.mGetProductsMap(productIds)
+		if err != nil {
+			return nil, err
+		}
+
+		for i := range views {
+			views[i].Barcode = productMap[views[i].ProductId].Barcode
+			views[i].Name = productMap[views[i].ProductId].Name
+		}
+
 	}
 
 	return views, nil
@@ -95,4 +113,22 @@ func (or *OrderPostgres) saveItem(view domain.OrderItemView) error {
 	}
 
 	return nil
+}
+
+func (or *OrderPostgres) mGetProductsMap(ids []int64) (map[int64]domain.Product, error) {
+	var (
+		views []domain.ProductView
+		resp  = make(map[int64]domain.Product)
+	)
+
+	err := or.db.Model(&views).Where("id in (?)", pg.In(ids)).Select()
+	if err != nil {
+		return nil, pe.New(409, err.Error())
+	}
+
+	for _, view := range views {
+		resp[view.Id] = domain.ProductViewToDomain(view)
+	}
+
+	return resp, nil
 }
