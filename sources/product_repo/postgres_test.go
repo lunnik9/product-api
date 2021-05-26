@@ -136,7 +136,7 @@ func TestProductPostgres_CreateCategory(t *testing.T) {
 	id, err := pr.CreateCategory(domain.Category{
 		MerchantId: "45",
 		StockId:    "123",
-		Name:       "ewe test category",
+		Name:       "Eco",
 	})
 	if err != nil {
 		t.Fatal(err)

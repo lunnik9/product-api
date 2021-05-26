@@ -34,7 +34,12 @@ func (wr *WaybillPostgres) Get(id int64) (*domain.Waybill, error) {
 func (wr *WaybillPostgres) Delete(id int64) error {
 	var view = domain.WaybillView{Id: id}
 
-	_, err := wr.db.Model(&view).WherePK().Delete()
+	err := wr.deleteWaybillProducts(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = wr.db.Model(&view).WherePK().Delete()
 	if err != nil {
 		return pe.New(409, err.Error())
 	}
@@ -195,4 +200,18 @@ func (wr *WaybillPostgres) GetProductByBarcode(barcode string, waybillId int64) 
 
 	return &product, nil
 
+}
+
+func (wr *WaybillPostgres) deleteWaybillProducts(waybillId int64) error {
+	var (
+		query = "delete from waybill_product where waybill_id = ?"
+		view  domain.WaybillProductView
+	)
+
+	_, err := wr.db.Query(&view, query, waybillId)
+	if err != nil {
+		return pe.New(409, err.Error())
+	}
+
+	return nil
 }
