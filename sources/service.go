@@ -81,6 +81,10 @@ func (s *service) Login(req *loginRequest) (*loginResponse, error) {
 		return nil, err
 	}
 
+	if merch.MerchantId == "" {
+		return nil, pe.New(404, "no merchant found")
+	}
+
 	merch.Token = satori.NewV1().String()
 	merch.LastCheck = time.Now().UTC()
 
