@@ -411,6 +411,8 @@ func (s *service) CreateWaybill(req *createWaybillRequest) (*createWaybillRespon
 }
 
 func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillResponse, error) {
+	var reason string
+
 	err := s.mr.CheckRights(req.Authorization)
 	if err != nil {
 		return nil, err
@@ -430,13 +432,22 @@ func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillRes
 		return nil, err
 	}
 
+	switch waybill.Type {
+	case "inwaybill":
+		reason = "received"
+	case "outwaybill":
+		reason = "pulled"
+	default:
+		return nil, pe.New(409, fmt.Sprintf("invalid type %v", waybill.Type))
+	}
+
 	for _, product := range products {
 		transfer := domain.Transfer{
 			ProductId:     product.ProductId,
 			SellingPrice:  product.SellingPrice,
 			PurchasePrice: product.PurchasePrice,
 			Amount:        product.Amount,
-			Reason:        "received",
+			Reason:        reason,
 			Source:        waybill.Type,
 			SourceId:      strconv.FormatInt(req.Id, 10),
 		}
@@ -459,6 +470,8 @@ func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillRes
 }
 
 func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybillResponse, error) {
+	var reason string
+
 	err := s.mr.CheckRights(req.Authorization)
 	if err != nil {
 		return nil, err
@@ -478,13 +491,22 @@ func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybill
 		return nil, err
 	}
 
+	switch waybill.Type {
+	case "inwaybill":
+		reason = "pulled"
+	case "outwaybill":
+		reason = "received"
+	default:
+		return nil, pe.New(409, fmt.Sprintf("invalid type %v", waybill.Type))
+	}
+
 	for _, product := range products {
 		transfer := domain.Transfer{
 			ProductId:     product.ProductId,
 			SellingPrice:  product.SellingPrice,
 			PurchasePrice: product.PurchasePrice,
 			Amount:        -product.Amount,
-			Reason:        "pulled",
+			Reason:        reason,
 			Source:        waybill.Type,
 			SourceId:      strconv.FormatInt(req.Id, 10),
 		}
