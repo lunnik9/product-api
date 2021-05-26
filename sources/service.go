@@ -95,7 +95,7 @@ func (s *service) Login(req *loginRequest) (*loginResponse, error) {
 func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshTokenResponse, error) {
 	merch, err := s.mr.GetMerchByToken(req.Token)
 	if err != nil {
-		return nil, err
+		return nil, pe.New(401, err.Error())
 	}
 
 	err = s.mr.CheckRightsWithMerch(*merch, req.Token)
@@ -108,7 +108,7 @@ func (s *service) GetRefreshToken(req *getRefreshTokenRequest) (*getRefreshToken
 
 	err = s.mr.UpdateMerch(*merch)
 	if err != nil {
-		return nil, err
+		return nil, pe.New(401, err.Error())
 	}
 
 	return &getRefreshTokenResponse{merch.Token}, nil
