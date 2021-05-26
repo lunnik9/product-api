@@ -437,7 +437,7 @@ func (s *service) ConductWaybill(req *conductWaybillRequest) (*conductWaybillRes
 			PurchasePrice: product.PurchasePrice,
 			Amount:        product.Amount,
 			Reason:        "received",
-			Source:        "inwaybill",
+			Source:        waybill.Type,
 			SourceId:      strconv.FormatInt(req.Id, 10),
 		}
 
@@ -485,7 +485,7 @@ func (s *service) RollbackWaybill(req *rollbackWaybillRequest) (*rollbackWaybill
 			PurchasePrice: product.PurchasePrice,
 			Amount:        -product.Amount,
 			Reason:        "pulled",
-			Source:        "outwaybill",
+			Source:        waybill.Type,
 			SourceId:      strconv.FormatInt(req.Id, 10),
 		}
 
