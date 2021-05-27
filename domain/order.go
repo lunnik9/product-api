@@ -30,8 +30,8 @@ type OrderItemView struct {
 	Amount        float64 `pg:"amount"`
 	SellingPrice  float64 `pg:"selling_price"`
 	PurchasePrice float64 `pg:"purchase_price"`
-	Barcode       string
-	Name          string
+	Barcode       string  `pg:"-"`
+	Name          string  `pg:"-"`
 }
 
 type OrderView struct {
@@ -44,7 +44,6 @@ type OrderView struct {
 	CashBoxId  string    `pg:"cash_box_id"`
 	TotalSum   float64   `pg:"total_sum"`
 	PayType    string    `pg:"pay_type"`
-	barcode    string
 }
 
 func OrderViewToDomain(view OrderView, items []OrderItemView) Order {
